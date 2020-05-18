@@ -5,28 +5,27 @@
 #include <string.h>
 #include "daq.h"
 #include "sys_status.h"
-#include "password.h"
 
 #define INVALID_HUM_TEMP 0xf001;
 // alarm status chian
 static alram_node head_node;
 
-//chain
+// chain
 static struct rt_mempool alarm_status_mp_inst;
 
 static uint8_t alarm_mempool[(ACL_TOTAL_NUM) * (sizeof(alram_node) + 4)];
 
-//operationall event record
+// operationall event record
 static fifo8_cb_td eventlog_fifo_inst;
 static cyc_buff_st event_cyc_buff_inst;
 
-//Alarm record
+// Alarm record
 
 static fifo8_cb_td alarmlog_fifo;
 static alarm_table_st alarm_status_table[ACL_TOTAL_NUM];
 static cyc_buff_st alarm_cyc_buff_inst;
 
-//tem_hum
+// tem_hum
 typedef struct
 {
     uint8_t base;
@@ -35,7 +34,7 @@ typedef struct
 } cnt_st;
 
 //计算地址。
-//static void cacl_event_pt(record_pt_st *pt_record,uint16_t max)
+// static void cacl_event_pt(record_pt_st *pt_record,uint16_t max)
 //{
 //
 //	  pt_record->cnt++;
@@ -59,12 +58,12 @@ typedef struct
 //
 //}
 
-//event record
+// event record
 
 /*********************************************************
-	Init Event_Record FiFo
+    Init Event_Record FiFo
 
-	
+
 ***********************************************************/
 
 static void init_eventlog_fifo(void)
@@ -116,9 +115,9 @@ void user_eventlog_add(void)
 }
 
 /*********************************************************
-	add Event_Record FiFo
+    add Event_Record FiFo
 
-	
+
 ***********************************************************/
 
 void add_eventlog_fifo(uint16 event_id, uint16 user_id, uint16 former_data, uint16 new_data)
@@ -128,11 +127,11 @@ void add_eventlog_fifo(uint16 event_id, uint16 user_id, uint16 former_data, uint
     time_t now;
 
     get_local_time(&now);
-    eventlog_inst.time = now;
-    eventlog_inst.event_id = event_id;
-    eventlog_inst.user_id = user_id;
+    eventlog_inst.time        = now;
+    eventlog_inst.event_id    = event_id;
+    eventlog_inst.user_id     = user_id;
     eventlog_inst.former_data = former_data;
-    eventlog_inst.new_data = new_data;
+    eventlog_inst.new_data    = new_data;
     //压入FIFO;
     fifo8_push(&eventlog_fifo_inst, (uint8_t *)&eventlog_inst);
 }
@@ -165,7 +164,7 @@ static void init_aLarmlog_fifo(void)
     {
         if ((alarm_status_table[i].trigger_time != 0xFFFFFFFF))
         {
-            index = 0;
+            index              = 0;
             data_buff[index++] = alarm_status_table[i].alarm_id >> 8;
             data_buff[index++] = alarm_status_table[i].alarm_id;
             data_buff[index++] = alarm_status_table[i].trigger_time >> 24;
@@ -182,14 +181,13 @@ static void init_aLarmlog_fifo(void)
             add_cycbuff(&alarm_cyc_buff_inst, (uint8_t *)&data_buff[0]);
         }
         alarm_status_table[i].trigger_time = 0xFFFFFFFF;
-        alarm_status_table[i].alarm_value = 0xFFFF;
+        alarm_status_table[i].alarm_value  = 0xFFFF;
     }
     I2C_EE_BufWrite((uint8_t *)&alarm_status_table[0], AlARM_TABLE_ADDR, sizeof(alarm_table_st) * ACL_TOTAL_NUM);
 }
 
 void init_alarm_log(void)
 {
-
     init_aLarmlog_fifo();
 }
 
@@ -203,24 +201,24 @@ void user_alarmlog_add(void)
 
     for (index = 0; index < len; index++)
     {
-
         if (fifo8_pop(&alarmlog_fifo, (uint8_t *)&alarmlog_inst) == 1)
         {
             //第字节代表报警序号
             table_index = alarmlog_inst.alarm_id & 0x00FF;
 
-            if (alarmlog_inst.end_time == 0xFFFFFFFF) //报警触发
+            if (alarmlog_inst.end_time == 0xFFFFFFFF)  //报警触发
             {
                 //触发存放数据
 
                 alarm_status_table[table_index].trigger_time = alarmlog_inst.trigger_time;
-                alarm_status_table[table_index].alarm_value = alarmlog_inst.rev;
-                alarm_status_table[table_index].alarm_id = alarmlog_inst.alarm_id;
-                //save to EEPROM
-                I2C_EE_BufWrite((uint8_t *)&alarm_status_table[table_index], AlARM_TABLE_ADDR + sizeof(alarm_table_st) * table_index, sizeof(alarm_table_st));
+                alarm_status_table[table_index].alarm_value  = alarmlog_inst.rev;
+                alarm_status_table[table_index].alarm_id     = alarmlog_inst.alarm_id;
+                // save to EEPROM
+                I2C_EE_BufWrite((uint8_t *)&alarm_status_table[table_index],
+                                AlARM_TABLE_ADDR + sizeof(alarm_table_st) * table_index, sizeof(alarm_table_st));
                 //
             }
-            else //报警结束
+            else  //报警结束
             {
                 if (alarm_status_table[table_index].trigger_time != 0xFFFFFFFF)
                 {
@@ -248,22 +246,23 @@ void user_alarmlog_add(void)
                 {
                     rt_kprintf("user_alarmlog_add ERRO= %d \n", table_index);
                 }
-                //save table
-                alarm_status_table[table_index].alarm_value = 0xFFFF;
+                // save table
+                alarm_status_table[table_index].alarm_value  = 0xFFFF;
                 alarm_status_table[table_index].trigger_time = 0xFFFFFFFF;
-                I2C_EE_BufWrite((uint8_t *)&alarm_status_table[table_index], AlARM_TABLE_ADDR + sizeof(alarm_table_st) * table_index, sizeof(alarm_table_st));
+                I2C_EE_BufWrite((uint8_t *)&alarm_status_table[table_index],
+                                AlARM_TABLE_ADDR + sizeof(alarm_table_st) * table_index, sizeof(alarm_table_st));
             }
         }
     }
 }
 
 /*********************************************************
-	add Event_Record FiFo
+    add Event_Record FiFo
 
-	FLG =0 ;ALARM Trigger;
+    FLG =0 ;ALARM Trigger;
 
-	FLG =1 ALARM_END;
-	
+    FLG =1 ALARM_END;
+
 ***********************************************************/
 
 void add_alarmlog_fifo(uint16_t alarm_id, alarm_enum flg, uint16 alarm_value)
@@ -275,17 +274,17 @@ void add_alarmlog_fifo(uint16_t alarm_id, alarm_enum flg, uint16 alarm_value)
     get_local_time(&now);
     if (flg == ALARM_END)
     {
-        alarmLog_inst.end_time = now;
+        alarmLog_inst.end_time     = now;
         alarmLog_inst.trigger_time = 0;
     }
     else
     {
         alarmLog_inst.trigger_time = now;
-        alarmLog_inst.end_time = 0xFFFFFFFF;
+        alarmLog_inst.end_time     = 0xFFFFFFFF;
     }
 
     alarmLog_inst.alarm_id = alarm_id;
-    alarmLog_inst.rev = alarm_value;
+    alarmLog_inst.rev      = alarm_value;
 
     //压入FIFO;
     if (fifo8_push(&alarmlog_fifo, (uint8_t *)&alarmLog_inst) == 0)
@@ -295,8 +294,8 @@ void add_alarmlog_fifo(uint16_t alarm_id, alarm_enum flg, uint16 alarm_value)
 }
 
 //清除一切事件记录
-//Flag=0//清除事件记录
-//flag=1 清除报警记录
+// Flag=0//清除事件记录
+// flag=1 清除报警记录
 uint8_t clear_log(uint8_t flag)
 {
     uint8_t ret;
@@ -319,7 +318,8 @@ uint8_t clear_log(uint8_t flag)
     {
         ret += clear_cycbuff_log(&alarm_cyc_buff_inst);
         memset((uint8_t *)&alarm_status_table[0], 0xff, sizeof(alarm_table_st) * ACL_TOTAL_NUM);
-        ret += I2C_EE_BufWrite((uint8_t *)&alarm_status_table[0], AlARM_TABLE_ADDR, sizeof(alarm_table_st) * ACL_TOTAL_NUM);
+        ret += I2C_EE_BufWrite((uint8_t *)&alarm_status_table[0], AlARM_TABLE_ADDR,
+                               sizeof(alarm_table_st) * ACL_TOTAL_NUM);
         if (ret == 2 * EEPROM_NOERRO)
         {
             return (1);
@@ -333,9 +333,9 @@ uint8_t clear_log(uint8_t flag)
 
 //获取事件记录
 // flag=1;表示获取报警记录
-//flag=0；表示获取事件记录
-//NO表示距离当前第多少条。NO =0.表示目前条，
-//CNT 表示尧都区的数据条数
+// flag=0；表示获取事件记录
+// NO表示距离当前第多少条。NO =0.表示目前条，
+// CNT 表示尧都区的数据条数
 
 //函数返回值，表示读出来的事件记录的条数
 
@@ -344,14 +344,16 @@ uint16_t get_log(uint8_t *log_data, uint16_t start_num, uint16_t cont, uint16_t 
     if (log_type == ALARM_TYPE)
     {
         //不包含报警状态在内的报警
-        I2C_EE_BufRead((uint8_t *)&alarm_cyc_buff_inst.pt_inst, alarm_cyc_buff_inst.eeprom_buff_base_addr, sizeof(record_pt_st));
+        I2C_EE_BufRead((uint8_t *)&alarm_cyc_buff_inst.pt_inst, alarm_cyc_buff_inst.eeprom_buff_base_addr,
+                       sizeof(record_pt_st));
         //不包含报警未解除的内容
         *(total_cnt) = alarm_cyc_buff_inst.pt_inst.cnt;
         return (quiry_cycbuff(&alarm_cyc_buff_inst, start_num, cont, log_data));
     }
     else
     {
-        I2C_EE_BufRead((uint8_t *)&event_cyc_buff_inst.pt_inst, event_cyc_buff_inst.eeprom_buff_base_addr, sizeof(record_pt_st));
+        I2C_EE_BufRead((uint8_t *)&event_cyc_buff_inst.pt_inst, event_cyc_buff_inst.eeprom_buff_base_addr,
+                       sizeof(record_pt_st));
         *(total_cnt) = event_cyc_buff_inst.pt_inst.cnt;
         return (quiry_cycbuff(&event_cyc_buff_inst, start_num, cont, log_data));
     }
@@ -360,121 +362,132 @@ uint16_t get_log(uint8_t *log_data, uint16_t start_num, uint16_t cont, uint16_t 
 void chain_init(void)
 {
     extern sys_reg_st g_sys;
-    //ACL_TOTAL_NUM*sizeof(alram_node)
-    //sizeof(alram_node)
+    // ACL_TOTAL_NUM*sizeof(alram_node)
+    // sizeof(alram_node)
     //初始化内块
-    if (rt_mp_init(&alarm_status_mp_inst, "alarm_satus", &alarm_mempool[0], sizeof(alarm_mempool), sizeof(alram_node)) != RT_EOK)
+    if (rt_mp_init(&alarm_status_mp_inst, "alarm_satus", &alarm_mempool[0], sizeof(alarm_mempool),
+                   sizeof(alram_node)) != RT_EOK)
     {
         rt_kprintf("ALRAM_CAcl :rt_mp_init erro \n");
         return;
     }
-    head_node.next = NULL;
-    head_node.alarm_value = 0; //报警计数
-    g_sys.status.alarm_status_cnt.total_cnt = 0;
-    g_sys.status.alarm_status_cnt.major_cnt = 0;
+    head_node.next                             = NULL;
+    head_node.alarm_value                      = 0;  //报警计数
+    g_sys.status.alarm_status_cnt.total_cnt    = 0;
+    g_sys.status.alarm_status_cnt.major_cnt    = 0;
     g_sys.status.alarm_status_cnt.critical_cnt = 0;
-    g_sys.status.alarm_status_cnt.mioor_cnt = 0;
+    g_sys.status.alarm_status_cnt.mioor_cnt    = 0;
 }
 
 static uint8_t calc_pwr_off(void)
 {
-
     return 0;
     /*
-		const uint8_t power_alarm_table[14]={ACL_POWER_HI_FD,ACL_POWER_LO_FD,ACL_POWER_EP,ACL_POWER_A_HIGH,ACL_POWER_B_HIGH ,ACL_POWER_C_HIGH,
-								 ACL_POWER_A_LOW,ACL_POWER_B_LOW,ACL_POWER_C_LOW,ACL_POWER_A_OP,ACL_POWER_B_OP,ACL_POWER_C_OP,ACL_AIR_LOSS,ACL_REMOTE_SHUT};
-		const uint8_t compessor1_alarm_table[7]={ACL_HI_PRESS1,ACL_HI_LOCK1,ACL_LO_PRESS1,ACL_LO_LOCK1,ACL_EXTMP1,ACL_EXTMP_LOCK1,ACL_SHORT_TERM1};
-		const uint8_t compessor2_alarm_table[7]={ACL_HI_PRESS2,ACL_HI_LOCK2,ACL_LO_PRESS2,ACL_LO_LOCK2,ACL_EXTMP2,ACL_EXTMP_LOCK2,ACL_SHORT_TERM2};		
-		const uint8_t fan_alarm_table[8]={ACL_FAN_OVERLOAD1,ACL_FAN_OVERLOAD2,ACL_FAN_OVERLOAD3,ACL_FAN_OVERLOAD4,ACL_FAN_OVERLOAD5,ACL_FAN_OVERLOAD6,ACL_FAN_OVERLOAD7,ACL_FAN_OVERLOAD8};
-		const uint8_t wavle_alarm_table[1]={ACL_COIL_BLOCKING};
-		uint8_t i,req =0,compressor1_alram =0 ,compressor2_alram =0,fan_alarm_cnt=0;
-		
-		
-		for(i=0;i<sizeof(power_alarm_table);i++)
-		{
-				req |= get_alarm_bitmap(power_alarm_table[i]);
-				if(req ==1)
-				{
-					return(req);
-				}				
-		}
-		if((get_alarm_bitmap(ACL_WATER_OVERFLOW) == 1)&&(g_sys.config.alarm[ACL_WATER_OVERFLOW].alarm_param == 0))
-		{
-				req |= 1;
-				return(req);
-		}
-		//compress_alarm 
-		if((req ==0)&&((g_sys.config.general.cool_type == COOL_TYPE_MODULE_WIND)||(g_sys.config.general.cool_type == COOL_TYPE_COLUMN_WIND)))
-		{
-					for(i=0;i<sizeof(compessor1_alarm_table);i++)
-					{
-								compressor1_alram |=get_alarm_bitmap(compessor1_alarm_table[i]);
-								
-					}
-					req|= compressor1_alram;
-					// double compressor
-					if(devinfo_get_compressor_cnt() == 2)
-					{
-							for(i=0;i<sizeof(compessor2_alarm_table);i++)
-							{
-									compressor2_alram |=get_alarm_bitmap(compessor2_alarm_table[i]);
-							}
-							req &= compressor2_alram;
-					}
-					
-		}
-		// water valve alarm
-		else if((req ==0)&&((g_sys.config.general.cool_type == COOL_TYPE_MODULE_WATER)||(g_sys.config.general.cool_type == COOL_TYPE_COLUMN_WATER)))
-		{
-				for(i=0;i<sizeof(wavle_alarm_table);i++)
-				{
-						req |=get_alarm_bitmap(wavle_alarm_table[i]);
-				}
-		}
-		else
-		{
-				;
-		}
-		// fan_alram
-		if(req ==0)
-		{
-					for(i=0;i<sizeof(fan_alarm_table);i++)
-					{
-							fan_alarm_cnt+=get_alarm_bitmap(fan_alarm_table[i]);
-					}
-					if(fan_alarm_cnt !=0)
-					{
-							if((g_sys.config.general.cool_type == COOL_TYPE_MODULE_WIND)||(g_sys.config.general.cool_type == COOL_TYPE_MODULE_WATER))
-							{
-									if(fan_alarm_cnt!=0)
-									{
-										req =1;
-									}
-							}
-							else if((g_sys.config.general.cool_type == COOL_TYPE_COLUMN_WIND)||(g_sys.config.general.cool_type == COOL_TYPE_COLUMN_WATER))
-							{
-										if((g_sys.config.general.cool_type == COOL_TYPE_COLUMN_WIND)&&((fan_alarm_cnt >=g_sys.config.fan.num)||(fan_alarm_cnt >1)))
-										{
-												req =1;
-										}
-										if((g_sys.config.general.cool_type == COOL_TYPE_COLUMN_WATER)&&(fan_alarm_cnt >=g_sys.config.fan.num))
-										{
-												req =1;
-										}
-							}
-							else 
-							{
-							}
-					}
-					
-		}
-		
-		return(req);
+        const uint8_t
+       power_alarm_table[14]={ACL_POWER_HI_FD,ACL_POWER_LO_FD,ACL_POWER_EP,ACL_POWER_A_HIGH,ACL_POWER_B_HIGH
+       ,ACL_POWER_C_HIGH,
+                                 ACL_POWER_A_LOW,ACL_POWER_B_LOW,ACL_POWER_C_LOW,ACL_POWER_A_OP,ACL_POWER_B_OP,ACL_POWER_C_OP,ACL_AIR_LOSS,ACL_REMOTE_SHUT};
+        const uint8_t
+       compessor1_alarm_table[7]={ACL_HI_PRESS1,ACL_HI_LOCK1,ACL_LO_PRESS1,ACL_LO_LOCK1,ACL_EXTMP1,ACL_EXTMP_LOCK1,ACL_SHORT_TERM1};
+        const uint8_t
+       compessor2_alarm_table[7]={ACL_HI_PRESS2,ACL_HI_LOCK2,ACL_LO_PRESS2,ACL_LO_LOCK2,ACL_EXTMP2,ACL_EXTMP_LOCK2,ACL_SHORT_TERM2};
+        const uint8_t
+       fan_alarm_table[8]={ACL_FAN_OVERLOAD1,ACL_FAN_OVERLOAD2,ACL_FAN_OVERLOAD3,ACL_FAN_OVERLOAD4,ACL_FAN_OVERLOAD5,ACL_FAN_OVERLOAD6,ACL_FAN_OVERLOAD7,ACL_FAN_OVERLOAD8};
+        const uint8_t wavle_alarm_table[1]={ACL_COIL_BLOCKING};
+        uint8_t i,req =0,compressor1_alram =0 ,compressor2_alram =0,fan_alarm_cnt=0;
+
+
+        for(i=0;i<sizeof(power_alarm_table);i++)
+        {
+                req |= get_alarm_bitmap(power_alarm_table[i]);
+                if(req ==1)
+                {
+                    return(req);
+                }
+        }
+        if((get_alarm_bitmap(ACL_WATER_OVERFLOW) == 1)&&(g_sys.config.alarm[ACL_WATER_OVERFLOW].alarm_param == 0))
+        {
+                req |= 1;
+                return(req);
+        }
+        //compress_alarm
+        if((req ==0)&&((g_sys.config.general.cool_type == COOL_TYPE_MODULE_WIND)||(g_sys.config.general.cool_type ==
+       COOL_TYPE_COLUMN_WIND)))
+        {
+                    for(i=0;i<sizeof(compessor1_alarm_table);i++)
+                    {
+                                compressor1_alram |=get_alarm_bitmap(compessor1_alarm_table[i]);
+
+                    }
+                    req|= compressor1_alram;
+                    // double compressor
+                    if(devinfo_get_compressor_cnt() == 2)
+                    {
+                            for(i=0;i<sizeof(compessor2_alarm_table);i++)
+                            {
+                                    compressor2_alram |=get_alarm_bitmap(compessor2_alarm_table[i]);
+                            }
+                            req &= compressor2_alram;
+                    }
+
+        }
+        // water valve alarm
+        else if((req ==0)&&((g_sys.config.general.cool_type == COOL_TYPE_MODULE_WATER)||(g_sys.config.general.cool_type
+       == COOL_TYPE_COLUMN_WATER)))
+        {
+                for(i=0;i<sizeof(wavle_alarm_table);i++)
+                {
+                        req |=get_alarm_bitmap(wavle_alarm_table[i]);
+                }
+        }
+        else
+        {
+                ;
+        }
+        // fan_alram
+        if(req ==0)
+        {
+                    for(i=0;i<sizeof(fan_alarm_table);i++)
+                    {
+                            fan_alarm_cnt+=get_alarm_bitmap(fan_alarm_table[i]);
+                    }
+                    if(fan_alarm_cnt !=0)
+                    {
+                            if((g_sys.config.general.cool_type ==
+       COOL_TYPE_MODULE_WIND)||(g_sys.config.general.cool_type == COOL_TYPE_MODULE_WATER))
+                            {
+                                    if(fan_alarm_cnt!=0)
+                                    {
+                                        req =1;
+                                    }
+                            }
+                            else if((g_sys.config.general.cool_type ==
+       COOL_TYPE_COLUMN_WIND)||(g_sys.config.general.cool_type == COOL_TYPE_COLUMN_WATER))
+                            {
+                                        if((g_sys.config.general.cool_type == COOL_TYPE_COLUMN_WIND)&&((fan_alarm_cnt
+       >=g_sys.config.fan.num)||(fan_alarm_cnt >1)))
+                                        {
+                                                req =1;
+                                        }
+                                        if((g_sys.config.general.cool_type == COOL_TYPE_COLUMN_WATER)&&(fan_alarm_cnt
+       >=g_sys.config.fan.num))
+                                        {
+                                                req =1;
+                                        }
+                            }
+                            else
+                            {
+                            }
+                    }
+
+        }
+
+        return(req);
 */
 }
 
 ////计算二进制1个数
-//static uint8_t Calc_Bit1(uint16_t Num)
+// static uint8_t Calc_Bit1(uint16_t Num)
 //{
 //			uint8 Count=0;
 //
@@ -492,10 +505,10 @@ static void calc_alrarm_cnt(void)
     uint16_t alarm_id;
     extern sys_reg_st g_sys;
 
-    p_node2 = head_node.next;
+    p_node2      = head_node.next;
     critical_cnt = 0;
-    major_cnt = 0;
-    mioor_cnt = 0;
+    major_cnt    = 0;
+    mioor_cnt    = 0;
 
     if (head_node.next == NULL)
     {
@@ -505,39 +518,27 @@ static void calc_alrarm_cnt(void)
     {
         while (p_node2 != NULL)
         {
-
             alarm_id = p_node2->alarm_id;
             alarm_id = alarm_id >> 8;
             if ((alarm_id & 0x03) == CRITICAL_ALARM_lEVEL)
             {
-                //								//Alair,20161227
-                //								if(g_sys.status.Alarm_COM_NTC_BIT[ALARM_COM])
-                //								{
-                //										critical_cnt+=(Calc_Bit1(g_sys.status.Alarm_COM_NTC_BIT[ALARM_COM])-1);	//后面会加一次，这儿减1
-                //								}
                 critical_cnt++;
             }
             else if (((alarm_id & 0x03) == MAJOR_ALARM_LEVEL))
             {
                 major_cnt++;
             }
-            else //3
+            else  // 3
             {
                 mioor_cnt++;
             }
             p_node2 = p_node2->next;
         }
     }
-    if ((g_sys.status.alarm_bitmap[5] & WORK_LIMIT_CATION)) //开机口令维护提示告警
-    {
-        critical_cnt++;
-    }
-    //	if((g_sys.status.ControlPassword.Run_State&0x3F))//开机管控提示告警
-    //	{
-    //			mioor_cnt++;
-    //	}
-    g_sys.status.alarm_status_cnt.total_cnt = critical_cnt + major_cnt + mioor_cnt;
-    g_sys.status.alarm_status_cnt.mioor_cnt = mioor_cnt;
+
+   
+    g_sys.status.alarm_status_cnt.total_cnt     = critical_cnt + major_cnt + mioor_cnt;
+    g_sys.status.alarm_status_cnt.mioor_cnt     = mioor_cnt;
     g_sys.status.alarm_status_cnt.pwr_off_alarm = calc_pwr_off();
     if (g_sys.status.alarm_status_cnt.total_cnt > 0)
     {
@@ -548,11 +549,12 @@ static void calc_alrarm_cnt(void)
         sys_set_remap_status(WORK_MODE_STS_REG_NO, ALARM_STUSE_BPOS, 0);
     }
 
-    if ((g_sys.status.alarm_status_cnt.major_cnt < major_cnt) || (g_sys.status.alarm_status_cnt.critical_cnt < critical_cnt))
+    if ((g_sys.status.alarm_status_cnt.major_cnt < major_cnt) ||
+        (g_sys.status.alarm_status_cnt.critical_cnt < critical_cnt))
     {
-        sys_set_remap_status(WORK_MODE_STS_REG_NO, ALARM_BEEP_BPOS, 1); //严重告警
+        sys_set_remap_status(WORK_MODE_STS_REG_NO, ALARM_BEEP_BPOS, 1);  //严重告警
     }
-    g_sys.status.alarm_status_cnt.major_cnt = major_cnt;
+    g_sys.status.alarm_status_cnt.major_cnt    = major_cnt;
     g_sys.status.alarm_status_cnt.critical_cnt = critical_cnt;
 
     if ((g_sys.status.alarm_status_cnt.major_cnt == 0) && (g_sys.status.alarm_status_cnt.critical_cnt == 0))
@@ -576,10 +578,10 @@ uint8_t node_append(uint16_t alarm_id, uint16_t alarm_value)
     p_node1->next = head_node.next;
     //节点数量计数
 
-    p_node1->alarm_id = alarm_id;
-    p_node1->alarm_value = alarm_value;
+    p_node1->alarm_id     = alarm_id;
+    p_node1->alarm_value  = alarm_value;
     p_node1->trigger_time = now;
-    head_node.next = p_node1;
+    head_node.next        = p_node1;
     //计算报警状态总数和报警总类
     calc_alrarm_cnt();
     return 1;
@@ -644,7 +646,7 @@ uint8_t get_alarm_status(uint8_t *status_data, uint16_t start_num, uint8_t len)
     extern sys_reg_st g_sys;
 
     read_len = 0;
-    index = 0;
+    index    = 0;
     if (g_sys.status.alarm_status_cnt.total_cnt <= start_num)
     {
         return (0);
@@ -677,7 +679,8 @@ uint8_t get_alarm_status(uint8_t *status_data, uint16_t start_num, uint8_t len)
         *(status_data++) = (start_node_pt->alarm_value >> 8);
         *(status_data++) = start_node_pt->alarm_value;
 
-        //	rt_kprintf("\n start_node->alarm_id = %d ,start_node->alarm_value= %d\n",start_node->alarm_id,start_node->alarm_value);
+        //	rt_kprintf("\n start_node->alarm_id = %d ,start_node->alarm_value=
+        //%d\n",start_node->alarm_id,start_node->alarm_value);
 
         if (start_node_pt->next == NULL)
         {
@@ -716,13 +719,13 @@ void init_tem_hum_record(void)
 {
     uint8_t i;
     hum_temp_log_inst.index_point = 0;
-    hum_temp_log_inst.timer = 0;
-    hum_temp_log_inst.index_buff = 0;
+    hum_temp_log_inst.timer       = 0;
+    hum_temp_log_inst.index_buff  = 0;
     //初始化cycbuffer
-    //memset((uint8_t*)&hum_temp_log_inst.tem_hum_point[0].temp,0xff00,60*sizeof(hum_tem_st));
+    // memset((uint8_t*)&hum_temp_log_inst.tem_hum_point[0].temp,0xff00,60*sizeof(hum_tem_st));
     for (i = 0; i < 60; i++)
     {
-        hum_temp_log_inst.tem_hum_point[i].hum = INVALID_HUM_TEMP;
+        hum_temp_log_inst.tem_hum_point[i].hum  = INVALID_HUM_TEMP;
         hum_temp_log_inst.tem_hum_point[i].temp = INVALID_HUM_TEMP;
     }
     init_cycbuff(&hum_temp_log_inst.tem_hum_cyc, sizeof(hum_tem_st) * 60, HUM_TEMP_MAX_CNT, TEM_HUM_PT_ADDR);
@@ -734,10 +737,10 @@ static void calc_hum_temp(void)
     uint32_t hum;
     int32_t temp;
 
-    hum_flag = 0;
+    hum_flag  = 0;
     temp_flag = 0;
-    hum = 0;
-    temp = 0;
+    hum       = 0;
+    temp      = 0;
 
     for (i = 0; i < 60; i++)
     {
@@ -761,7 +764,7 @@ static void calc_hum_temp(void)
         }
     }
 
-    hum = hum / 60;
+    hum  = hum / 60;
     temp = temp / 60;
     if (temp_flag)
     {
@@ -772,7 +775,7 @@ static void calc_hum_temp(void)
         hum = INVALID_HUM_TEMP;
     }
     hum_temp_log_inst.tem_hum_point[hum_temp_log_inst.index_point].temp = temp;
-    hum_temp_log_inst.tem_hum_point[hum_temp_log_inst.index_point].hum = hum;
+    hum_temp_log_inst.tem_hum_point[hum_temp_log_inst.index_point].hum  = hum;
 
     hum_temp_log_inst.index_point++;
 }
@@ -784,12 +787,12 @@ static void update_hum_temp_to_EE(void)
 
     for (i = 0; i < 60; i++)
     {
-        tem_hum_buff[i * 2] = hum_temp_log_inst.tem_hum_point[i].temp >> 8;
+        tem_hum_buff[i * 2]     = hum_temp_log_inst.tem_hum_point[i].temp >> 8;
         tem_hum_buff[i * 2 + 1] = hum_temp_log_inst.tem_hum_point[i].temp;
     }
     for (i = 0; i < 60; i++)
     {
-        tem_hum_buff[i * 2 + 120] = hum_temp_log_inst.tem_hum_point[i].hum >> 8;
+        tem_hum_buff[i * 2 + 120]     = hum_temp_log_inst.tem_hum_point[i].hum >> 8;
         tem_hum_buff[i * 2 + 1 + 120] = hum_temp_log_inst.tem_hum_point[i].hum;
     }
 
@@ -814,17 +817,17 @@ void add_hum_temp_log(void)
     if (g_sys.config.algorithm.ctrl_target_mode == TARGET_MODE_RETURN)
     {
         hum_temp_log_inst.tem_hum_buff[hum_temp_log_inst.index_buff].temp = g_sys.status.sys_tem_hum.return_air_temp;
-        hum_temp_log_inst.tem_hum_buff[hum_temp_log_inst.index_buff].hum = g_sys.status.sys_tem_hum.return_air_hum;
+        hum_temp_log_inst.tem_hum_buff[hum_temp_log_inst.index_buff].hum  = g_sys.status.sys_tem_hum.return_air_hum;
     }
     else if (g_sys.config.algorithm.ctrl_target_mode == TARGET_MODE_SUPPLY)
     {
         hum_temp_log_inst.tem_hum_buff[hum_temp_log_inst.index_buff].temp = g_sys.status.sys_tem_hum.supply_air_temp;
-        hum_temp_log_inst.tem_hum_buff[hum_temp_log_inst.index_buff].hum = g_sys.status.sys_tem_hum.supply_air_hum;
+        hum_temp_log_inst.tem_hum_buff[hum_temp_log_inst.index_buff].hum  = g_sys.status.sys_tem_hum.supply_air_hum;
     }
     else
     {
         hum_temp_log_inst.tem_hum_buff[hum_temp_log_inst.index_buff].temp = g_sys.status.sys_tem_hum.remote_air_temp;
-        hum_temp_log_inst.tem_hum_buff[hum_temp_log_inst.index_buff].hum = g_sys.status.sys_tem_hum.remote_air_hum;
+        hum_temp_log_inst.tem_hum_buff[hum_temp_log_inst.index_buff].hum  = g_sys.status.sys_tem_hum.remote_air_hum;
     }
 
     hum_temp_log_inst.index_buff++;
@@ -844,34 +847,33 @@ void add_hum_temp_log(void)
 
 uint8_t get_tem_hum_log(uint8_t *log_data, uint16_t block)
 {
-
     uint8_t req, i;
 
     req = 0;
 
     //读取内存数据
-    I2C_EE_BufRead((uint8_t *)&hum_temp_log_inst.tem_hum_cyc.pt_inst, hum_temp_log_inst.tem_hum_cyc.eeprom_buff_base_addr, sizeof(record_pt_st));
+    I2C_EE_BufRead((uint8_t *)&hum_temp_log_inst.tem_hum_cyc.pt_inst,
+                   hum_temp_log_inst.tem_hum_cyc.eeprom_buff_base_addr, sizeof(record_pt_st));
     *(log_data++) = hum_temp_log_inst.tem_hum_cyc.pt_inst.cnt + 1;
 
     if (block == 0)
     {
         *(log_data++) = 0;
         *(log_data++) = hum_temp_log_inst.index_point;
-        req = 1;
+        req           = 1;
         for (i = 0; i < 60; i++)
         {
-            *(log_data + i * 2) = hum_temp_log_inst.tem_hum_point[i].temp >> 8;
+            *(log_data + i * 2)     = hum_temp_log_inst.tem_hum_point[i].temp >> 8;
             *(log_data + i * 2 + 1) = hum_temp_log_inst.tem_hum_point[i].temp;
         }
         for (i = 0; i < 60; i++)
         {
-            *(log_data + i * 2 + 120) = hum_temp_log_inst.tem_hum_point[i].hum >> 8;
+            *(log_data + i * 2 + 120)     = hum_temp_log_inst.tem_hum_point[i].hum >> 8;
             *(log_data + i * 2 + 1 + 120) = hum_temp_log_inst.tem_hum_point[i].hum;
         }
     }
     else
     {
-
         *(log_data++) = block;
         *(log_data++) = 60;
         req += quiry_cycbuff(&hum_temp_log_inst.tem_hum_cyc, block, 1, log_data);
@@ -886,11 +888,11 @@ uint8_t clear_tem_hum_log(void)
 
     memset((uint8_t *)&log_pt_inst.startpiont, 0, sizeof(record_pt_st));
     hum_temp_log_inst.index_point = 0;
-    hum_temp_log_inst.timer = 0;
-    hum_temp_log_inst.index_buff = 0;
+    hum_temp_log_inst.timer       = 0;
+    hum_temp_log_inst.index_buff  = 0;
     for (i = 0; i < 60; i++)
     {
-        hum_temp_log_inst.tem_hum_point[i].hum = INVALID_HUM_TEMP;
+        hum_temp_log_inst.tem_hum_point[i].hum  = INVALID_HUM_TEMP;
         hum_temp_log_inst.tem_hum_point[i].temp = INVALID_HUM_TEMP;
     }
 

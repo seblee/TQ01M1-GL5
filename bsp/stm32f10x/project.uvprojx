@@ -449,11 +449,6 @@
           <GroupName>usr</GroupName>
           <Files>
             <File>
-              <FileName>syslog.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\usr\modules\syslog.c</FilePath>
-            </File>
-            <File>
               <FileName>authentication.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\usr\modules\authentication.c</FilePath>
@@ -492,16 +487,6 @@
               <FileName>sys_status.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\usr\modules\sys_status.c</FilePath>
-            </File>
-            <File>
-              <FileName>team.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\usr\modules\team.c</FilePath>
-            </File>
-            <File>
-              <FileName>password.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\usr\modules\password.c</FilePath>
             </File>
             <File>
               <FileName>reg_map_check.c</FileName>

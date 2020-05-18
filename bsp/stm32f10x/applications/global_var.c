@@ -7,12 +7,11 @@
 #include "local_status.h"
 #include "global_var.h"
 #include "event_record.h"
-#include "password.h"
-#include "team.h"
+
 #include "reg_map_check.h"
 #include "mb_event_cpad.h"
 #include "dio_bsp.h"
-//configuration parameters
+// configuration parameters
 
 #ifndef var_log
 #define var_log(N, ...) rt_kprintf("####[var %s:%4d] " N "\r\n", __FILE__, __LINE__, ##__VA_ARGS__)
@@ -35,16 +34,16 @@ typedef enum
 #define EE_FLAG_OK 0x01
 #define EE_FLAG_ERROR 0x02
 
-alarm_acl_conf_st g_alarm_acl_inst[MAX_ALARM_ACL_NUM]; //alarm check list declairation
-sys_reg_st g_sys;                                      //global parameter declairation
-local_reg_st l_sys;                                    //local status declairation
+alarm_acl_conf_st g_alarm_acl_inst[MAX_ALARM_ACL_NUM];  // alarm check list declairation
+sys_reg_st g_sys;                                       // global parameter declairation
+local_reg_st l_sys;                                     // local status declairation
 /**
- * 	 序号	指针	最小值	 最大值   默认值  权限		
- * 	{0, 	NULL,	0, 		3600,	0, 		0, 	 1, NULL}, 
+ * 	 序号	指针	最小值	 最大值   默认值  权限
+ * 	{0, 	NULL,	0, 		3600,	0, 		0, 	 1, NULL},
  *
  ***/
 const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
-    //id,mapped registers,min,max,dft,permission,r/w,chk_prt
+    // id,mapped registers,min,max,dft,permission,r/w,chk_prt
     {0, NULL, 0, 3600, 0, 0, 1, NULL},
     {1, NULL, 0, 3600, 0, 0, 1, NULL},
     {2, &g_sys.config.general.surv_baudrate, 0, 5, 1, 1, 1, NULL},
@@ -53,11 +52,11 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {5, &g_sys.config.general.alarm_bypass_en, 0, 1, 0, 3, 1, NULL},
     {6, &g_sys.config.general.testing_mode_en, 0, 1, 0, 4, 1, NULL},
     {7, &g_sys.config.general.power_mode_mb_en, 0, 1, 1, 3, 1, NULL},
-//    {8, &g_sys.config.dev_mask.din_bitmap_polarity[0], 0, 0xffff, 0xBFA4, 3, 1, NULL}, // DI极性
-    {8, &g_sys.config.dev_mask.din_bitmap_polarity[0], 0, 0xffff, 0xBE5B, 3, 1, NULL}, // DI极性
+    //    {8, &g_sys.config.dev_mask.din_bitmap_polarity[0], 0, 0xffff, 0xBFA4, 3, 1, NULL}, // DI极性
+    {8, &g_sys.config.dev_mask.din_bitmap_polarity[0], 0, 0xffff, 0xBE5B, 3, 1, NULL},  // DI极性
     {9, &g_sys.config.dev_mask.din_bitmap_polarity[1], 0, 0xffff, 0x00, 3, 1, NULL},
     {10, &g_sys.config.dev_mask.ain, 0, 0xffff, 0x801F, 3, 1, NULL},
-    {11, &g_sys.config.dev_mask.din[0], 0, 0xFFFF, 0xFFFB, 3, 1, NULL}, // DI屏蔽位
+    {11, &g_sys.config.dev_mask.din[0], 0, 0xFFFF, 0xFFFB, 3, 1, NULL},  // DI屏蔽位
     {12, &g_sys.config.dev_mask.din[1], 0, 0xffff, 0x0000, 3, 1, NULL},
     {13, &g_sys.config.dev_mask.aout, 0, 0x003f, 0x0001, 3, 1, NULL},
     {14, &g_sys.config.dev_mask.mb_comp, 0, 0xFFFF, 0x01, 3, 1, NULL},
@@ -101,17 +100,17 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {52, &g_sys.config.ComPara.u16Sterilize_Mode, 0, 3, 1, 2, 1, NULL},
     {53, &g_sys.config.ComPara.u16Sterilize_Time[1], 1, 600, 10, 2, 1, NULL},
     {54, &g_sys.config.ComPara.u16Sterilize_Interval[1], 1, 10000, 360, 2, 1, NULL},
-    {55, &g_sys.config.ComPara.u16UV_Delay,					 						 0,				   1000,			  5,					  2,					1,      NULL   	},
+    {55, &g_sys.config.ComPara.u16UV_Delay, 0, 1000, 5, 2, 1, NULL},
     {FACTORY_RESET, &g_sys.config.ComPara.u16Reset, 0, 0xFF, 0, 2, 1, NULL},
-    {57, &g_sys.config.ComPara.u16Test_Mode_Type, 0, 0xFF, 0, 2, 1, NULL},       //121
-    {MANUAL_TSET, &g_sys.config.ComPara.u16Manual_Test_En, 0, 2, 0, 2, 1, NULL}, //122
+    {57, &g_sys.config.ComPara.u16Test_Mode_Type, 0, 0xFF, 0, 2, 1, NULL},        // 121
+    {MANUAL_TSET, &g_sys.config.ComPara.u16Manual_Test_En, 0, 2, 0, 2, 1, NULL},  // 122
     {59, &l_sys.bitmap[0][BITMAP_MANUAL], 0, 0xffff, 0, 1, 1, NULL},
     {60, &g_sys.config.ComPara.u16TPower_En, 0, 1, 0, 2, 1, NULL},
     {61, &g_sys.config.ComPara.u16TPower_On, 0, 0xFFFF, 500, 2, 1, NULL},
     {62, &g_sys.config.ComPara.u16TPower_Off, 0, 0xFFFF, 2300, 2, 1, NULL},
     {63, &g_sys.config.alarm[ACL_FILTER_OT].alarm_param, 1, 65000, 4320, 2, 1, NULL},
     {64, &g_sys.config.alarm[ACL_E9].alarm_param, 1, 65000, 240, 2, 1, NULL},
-//    {65, &g_sys.config.alarm[ACL_FILTER_ELEMENT_0_OT].alarm_param, 1, 65535, 2500, 2, 1, NULL},
+    //    {65, &g_sys.config.alarm[ACL_FILTER_ELEMENT_0_OT].alarm_param, 1, 65535, 2500, 2, 1, NULL},
     {65, &g_sys.config.alarm[ACL_FILTER_ELEMENT_0_OT].alarm_param, 1, 65535, 3600, 2, 1, NULL},
     {66, &g_sys.config.ComPara.u16Clear_RT, 0, 0xFF, 0, 2, 1, NULL},
     {CLEAR_ALARM, &g_sys.config.ComPara.u16Clear_ALARM, 0, 0xFF, 0, 2, 1, NULL},
@@ -130,7 +129,7 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {80, &g_sys.config.general.temp_sensor_cali[0].hum, 0, 0xffff, 0, 2, 1, NULL},
     {81, &g_sys.config.general.ntc_cali[3], 0, 0xffff, 0, 2, 1, NULL},
     {82, &g_sys.config.ComPara.u16HotWater_Cali, 0, 0xffff, 0, 2, 1, NULL},
-    {83, (uint16_t *)&l_sys.ao_list[AO_EC_FAN][BITMAP_MANUAL], 0, 100, 0, 0, 1, NULL}, //147
+    {83, (uint16_t *)&l_sys.ao_list[AO_EC_FAN][BITMAP_MANUAL], 0, 100, 0, 0, 1, NULL},  // 147
     {84, &g_sys.config.fan.set_speed, 0, 100, 28, 2, 1, NULL},
     {85, NULL, 0, 3600, 0, 2, 1, NULL},
     {86, &g_sys.config.ComPara.u16ColdWater_Mode, 0, 2, 0, 2, 1, NULL},
@@ -138,18 +137,18 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {88, &g_sys.config.ComPara.u16ColdWater_StopTemp, 10, 300, 70, 2, 1, ColdWater_StopTemp_Chek},
     {89, &g_sys.config.ComPara.u16HeatFan_StartTemp, 0, 1000, 600, 2, 1, NULL},
     {90, &g_sys.config.ComPara.u16HeatFan_StopTemp, 0, 1000, 400, 2, 1, NULL},
-//    {91, &g_sys.config.ComPara.u16FILTER_ELEMENT_Type, 0, 1, 0, 2, 1, NULL},
-//    {92, &g_sys.config.alarm[ACL_FILTER_ELEMENT_1_OT].alarm_param, 1, 65535, 2500, 2, 1, NULL},
-//    {93, &g_sys.config.alarm[ACL_FILTER_ELEMENT_2_OT].alarm_param, 1, 65535, 2500, 2, 1, NULL},
-//    {94, &g_sys.config.alarm[ACL_FILTER_ELEMENT_3_OT].alarm_param, 1, 65535, 2500, 2, 1, NULL},
+    //    {91, &g_sys.config.ComPara.u16FILTER_ELEMENT_Type, 0, 1, 0, 2, 1, NULL},
+    //    {92, &g_sys.config.alarm[ACL_FILTER_ELEMENT_1_OT].alarm_param, 1, 65535, 2500, 2, 1, NULL},
+    //    {93, &g_sys.config.alarm[ACL_FILTER_ELEMENT_2_OT].alarm_param, 1, 65535, 2500, 2, 1, NULL},
+    //    {94, &g_sys.config.alarm[ACL_FILTER_ELEMENT_3_OT].alarm_param, 1, 65535, 2500, 2, 1, NULL},
     {91, &g_sys.config.ComPara.u16FILTER_ELEMENT_Type, 0, 1, 1, 2, 1, NULL},
     {92, &g_sys.config.alarm[ACL_FILTER_ELEMENT_1_OT].alarm_param, 1, 65535, 3600, 2, 1, NULL},
     {93, &g_sys.config.alarm[ACL_FILTER_ELEMENT_2_OT].alarm_param, 1, 65535, 3600, 2, 1, NULL},
     {94, &g_sys.config.alarm[ACL_E17].alarm_param, 0, 30, 6, 2, 1, NULL},
     {95, &g_sys.config.alarm[ACL_FILTER_ELEMENT_4_OT].alarm_param, 1, 65535, 2500, 2, 1, NULL},
     {96, &g_sys.config.alarm[ACL_UV1_OT].alarm_param, 1, 65535, 30000, 2, 1, NULL},
-    {97, &g_sys.config.ComPara.u16Start_Temp[1], 	0, 800, 380, 2, 1, NULL},
-    {98, &g_sys.config.ComPara.u16Stop_Temp[1], 	0, 800, 400, 2, 1, NULL},   
+    {97, &g_sys.config.ComPara.u16Start_Temp[1], 0, 800, 380, 2, 1, NULL},
+    {98, &g_sys.config.ComPara.u16Stop_Temp[1], 0, 800, 400, 2, 1, NULL},
     {99, &g_sys.config.Platform.Restart_Enable, 0, 0xFFFF, 0x8003, 2, 1, NULL},
     {100, &g_sys.config.Platform.Restart_Delay, 1, 0xFFFF, 0x0C03, 2, 1, NULL},
     {101, &g_sys.config.Platform.Fixed_Report, 10, 1000, 60, 2, 1, NULL},
@@ -174,17 +173,17 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {117, NULL, 0, 3600, 0, 0, 1, NULL},
     {118, NULL, 0, 3600, 0, 0, 1, NULL},
     {119, NULL, 0, 3600, 0, 0, 1, NULL},
-    {EE_STORAGE, &g_sys.config.ComPara.u16Storage, 		0, 1,     0,   2, 1, NULL},
-    {121, &g_sys.config.ComPara.u16StorageDealy[0], 	1, 10000, 80, 2, 1, NULL},
-    {122, &g_sys.config.ComPara.u16StorageDealy[1], 	1, 10000, 10, 2, 1, NULL},
+    {EE_STORAGE, &g_sys.config.ComPara.u16Storage, 0, 1, 0, 2, 1, NULL},
+    {121, &g_sys.config.ComPara.u16StorageDealy[0], 1, 10000, 80, 2, 1, NULL},
+    {122, &g_sys.config.ComPara.u16StorageDealy[1], 1, 10000, 10, 2, 1, NULL},
     {123, NULL, 0, 3600, 0, 0, 1, NULL},
     {124, NULL, 0, 3600, 0, 0, 1, NULL},
-    {125, &g_sys.config.ComPara.u16TH_Interal, 				0, 1000,   30,  2, 1, NULL},
-    {126, &g_sys.config.ComPara.u16CycleTime, 				0, 24,     9,  2, 1, NULL},
-    {127, &g_sys.config.ComPara.u16CycleStart, 				0, 1,      0,  2, 1, NULL},
+    {125, &g_sys.config.ComPara.u16TH_Interal, 0, 1000, 30, 2, 1, NULL},
+    {126, &g_sys.config.ComPara.u16CycleTime, 0, 24, 9, 2, 1, NULL},
+    {127, &g_sys.config.ComPara.u16CycleStart, 0, 1, 0, 2, 1, NULL},
     {128, NULL, 0, 3600, 0, 0, 1, NULL},
     {129, NULL, 0, 3600, 0, 0, 1, NULL},
-    {130, &g_sys.config.alarm[ACL_E11].alarm_param, 	100, 1500, 1150, 2, 1, NULL},
+    {130, &g_sys.config.alarm[ACL_E11].alarm_param, 100, 1500, 1150, 2, 1, NULL},
     {131, NULL, 0, 3600, 0, 0, 1, NULL},
     {132, NULL, 0, 3600, 0, 0, 1, NULL},
     {133, NULL, 0, 3600, 0, 0, 1, NULL},
@@ -495,9 +494,9 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
 #endif
 };
 
-//status register map declairation
+// status register map declairation
 const sts_reg_map_st status_reg_map_inst[STATUS_REG_MAP_NUM] = {
-    //id,mapped registers,                    default
+    // id,mapped registers,                    default
     {0, &g_sys.status.ComSta.u16Hardware_ver, HARDWARE_VER},
     {1, &g_sys.status.ComSta.u16Software_ver, SOFTWARE_VER},
     {2, &g_sys.status.ComSta.u16Status_remap[0], 0},
@@ -527,7 +526,7 @@ const sts_reg_map_st status_reg_map_inst[STATUS_REG_MAP_NUM] = {
     {26, &g_sys.status.ComSta.u16Runtime[1][DO_FILLTER_ELEMENT_DUMMY_BPOS_2], 0},
     {27, &g_sys.status.ComSta.u16Runtime[1][DO_FILLTER_ELEMENT_DUMMY_BPOS_3], 0},
     {28, &g_sys.status.ComSta.u16Cumulative_Water[2], 0},
-    {29, &g_sys.status.ComSta.u16Runtime[1][DO_UV1_BPOS], 0},
+    {29, &g_sys.status.ComSta.u16Runtime[1][DO_PUREUV_BPOS], 0},
     {30, NULL, 0},
     {31, &g_sys.status.ComSta.REQ_TEST[0], 0},
     {32, &g_sys.status.ComSta.REQ_TEST[1], 0},
@@ -553,21 +552,21 @@ const sts_reg_map_st status_reg_map_inst[STATUS_REG_MAP_NUM] = {
 /**
   * @brief  get eeprom program status
   * @param  None
-  * @retval 
-		`EE_FLAG_OK:		configuration data valid in eeprom
-		`EE_FLAG_EMPTY:	eeprom empty
+  * @retval
+        `EE_FLAG_OK:		configuration data valid in eeprom
+        `EE_FLAG_EMPTY:	eeprom empty
   */
 
 static init_state_em get_ee_status(void)
 {
     init_state_em em_init_state;
     uint8_t ee_pflag;
-    rt_thread_delay(10);                       //wait for eeprom power on
-    I2C_EE_BufRead(&ee_pflag, STS_EE_ADDR, 1); //启动区
+    rt_thread_delay(10);                        // wait for eeprom power on
+    I2C_EE_BufRead(&ee_pflag, STS_EE_ADDR, 1);  //启动区
 
     l_sys.SEL_Jump = GetSEL();
-    //TEST
-    if (l_sys.SEL_Jump & Start_Init) //上电初始化
+    // TEST
+    if (l_sys.SEL_Jump & Start_Init)  //上电初始化
     {
         ee_pflag = EE_FLAG_LOAD_DEBUT;
     }
@@ -575,38 +574,34 @@ static init_state_em get_ee_status(void)
     // ee_pflag = EE_FLAG_LOAD_DEBUT;
     switch (ee_pflag)
     {
-    case (EE_FLAG_LOAD_USR):
-    {
-        em_init_state = INIT_LOAD_USR;
-        break;
-    }
+        case (EE_FLAG_LOAD_USR): {
+            em_init_state = INIT_LOAD_USR;
+            break;
+        }
 
-    case (EE_FLAG_LOAD_FACT):
-    {
-        em_init_state = INIT_LOAD_FACT;
-        break;
-    }
-    case (EE_FLAG_LOAD_DFT):
-    {
-        em_init_state = INIT_LOAD_DEFAULT;
-        break;
-    }
-    default:
-    {
-        em_init_state = INIT_LOAD_DEBUT;
-        break;
-    }
+        case (EE_FLAG_LOAD_FACT): {
+            em_init_state = INIT_LOAD_FACT;
+            break;
+        }
+        case (EE_FLAG_LOAD_DFT): {
+            em_init_state = INIT_LOAD_DEFAULT;
+            break;
+        }
+        default: {
+            em_init_state = INIT_LOAD_DEBUT;
+            break;
+        }
     }
     return em_init_state;
 }
 
 /**
   * @brief 	save system configurable variables initialization
-	* @param  0:load usr1 eeprom
-						1:load usr2 eeprom
-						2:load facotry eeprom
-						3:load default eeprom
-	* @retval err_cnt: mismatch read/write data count
+    * @param  0:load usr1 eeprom
+                        1:load usr2 eeprom
+                        2:load facotry eeprom
+                        3:load default eeprom
+    * @retval err_cnt: mismatch read/write data count
   */
 
 uint16_t set_load_flag(uint8_t ee_load_flag)
@@ -614,26 +609,22 @@ uint16_t set_load_flag(uint8_t ee_load_flag)
     uint8_t ee_flag;
     switch (ee_load_flag)
     {
-    case (0):
-    {
-        ee_flag = EE_FLAG_LOAD_USR; //用户区
-        break;
-    }
-    case (1):
-    {
-        ee_flag = EE_FLAG_LOAD_FACT;
-        break;
-    }
-    case (2):
-    {
-        ee_flag = EE_FLAG_LOAD_DEBUT;
-        break;
-    }
-    default:
-    {
-        ee_flag = EE_FLAG_LOAD_DFT;
-        break;
-    }
+        case (0): {
+            ee_flag = EE_FLAG_LOAD_USR;  //用户区
+            break;
+        }
+        case (1): {
+            ee_flag = EE_FLAG_LOAD_FACT;
+            break;
+        }
+        case (2): {
+            ee_flag = EE_FLAG_LOAD_DEBUT;
+            break;
+        }
+        default: {
+            ee_flag = EE_FLAG_LOAD_DFT;
+            break;
+        }
     }
     I2C_EE_BufWrite(&ee_flag, STS_EE_ADDR, 1);
     return 1;
@@ -641,9 +632,9 @@ uint16_t set_load_flag(uint8_t ee_load_flag)
 extern void rt_show_version(void);
 long sys_version(void)
 {
-    //rt_show_version();
+    // rt_show_version();
     rt_kprintf("formwire:%s,%02d.%02d.%02d\n", SOFTWARE_VER_NAME, VER_0, VER_1, VER_2);
-    rt_kprintf(" Hardware Version %d.%d\n",(HARDWARE_VER>>8),HARDWARE_VER&0x00ff);
+    rt_kprintf(" Hardware Version %d.%d\n", (HARDWARE_VER >> 8), HARDWARE_VER & 0x00ff);
     return 0;
 }
 FINSH_FUNCTION_EXPORT(sys_version, show RT - Thread version information);
@@ -651,11 +642,11 @@ MSH_CMD_EXPORT(sys_version, show RT - Thread version information);
 
 /**
   * @brief 	save system configurable variables initialization
-	* @param  addr_sel:
-						`0: save current configuration to usr1 eeprom address
-						`1:	save current configuration to usr2 eeprom address
-						`2:	save current configuration to facotry eeprom address
-	* @retval err_cnt: mismatch read/write data count
+    * @param  addr_sel:
+                        `0: save current configuration to usr1 eeprom address
+                        `1:	save current configuration to usr2 eeprom address
+                        `2:	save current configuration to facotry eeprom address
+    * @retval err_cnt: mismatch read/write data count
   */
 uint16_t save_conf_reg(uint8_t addr_sel)
 {
@@ -666,28 +657,26 @@ uint16_t save_conf_reg(uint8_t addr_sel)
     uint8_t ee_flag, req;
 
     ee_save_addr = 0;
-    err_cnt = 0;
+    err_cnt      = 0;
 
     switch (addr_sel)
     {
-    case (0):
-    {
-        ee_flag = EE_FLAG_LOAD_USR;
-        break;
-    }
-    case (1): //保存工厂参数
-    {
-        ee_save_addr = CONF_REG_FACT_ADDR;
-        ee_flag = EE_FLAG_LOAD_FACT;
-        break;
-    }
-    default:
-    {
-        return 0xff;
-    }
+        case (0): {
+            ee_flag = EE_FLAG_LOAD_USR;
+            break;
+        }
+        case (1):  //保存工厂参数
+        {
+            ee_save_addr = CONF_REG_FACT_ADDR;
+            ee_flag      = EE_FLAG_LOAD_FACT;
+            break;
+        }
+        default: {
+            return 0xff;
+        }
     }
 
-    for (i = 0; i < CONF_REG_MAP_NUM; i++) //set configration reg with default value
+    for (i = 0; i < CONF_REG_MAP_NUM; i++)  // set configration reg with default value
     {
         conf_reg[i] = *(conf_reg_map_inst[i].reg_ptr);
     }
@@ -709,7 +698,8 @@ uint16_t save_conf_reg(uint8_t addr_sel)
                 ee_save_addr = CONF_REG_EE3_ADDR;
             }
 
-            I2C_EE_BufWrite((uint8_t *)conf_reg, ee_save_addr, (CONF_REG_MAP_NUM)*2); //save configuration data to eeprom
+            I2C_EE_BufWrite((uint8_t *)conf_reg, ee_save_addr,
+                            (CONF_REG_MAP_NUM)*2);  // save configuration data to eeprom
             for (i = 0; i < 10; i++)
                 ;
             I2C_EE_BufRead((uint8_t *)test_reg, ee_save_addr, (CONF_REG_MAP_NUM)*2);
@@ -718,15 +708,16 @@ uint16_t save_conf_reg(uint8_t addr_sel)
                 if (conf_reg[i] != test_reg[i])
                 {
                     err_cnt++;
-                    // rt_kprintf("\ni = %d,conf_reg=%d,test_reg=%d,err_cnt=%d\n", i, conf_reg[i], test_reg[i], err_cnt);
+                    // rt_kprintf("\ni = %d,conf_reg=%d,test_reg=%d,err_cnt=%d\n", i, conf_reg[i], test_reg[i],
+                    // err_cnt);
                 }
             }
             if (err_cnt == 0)
             {
-                chk_res = checksum_u16(conf_reg, CONF_REG_MAP_NUM); //set parameter checksum
+                chk_res = checksum_u16(conf_reg, CONF_REG_MAP_NUM);  // set parameter checksum
                 I2C_EE_BufWrite((uint8_t *)&chk_res, ee_save_addr + (CONF_REG_MAP_NUM * 2), 2);
                 rt_kprintf("\nchk_res_addr = %d,,nchk_res=%d\n", ee_save_addr + (CONF_REG_MAP_NUM * 2), chk_res);
-                I2C_EE_BufWrite(&ee_flag, STS_EE_ADDR, 1); //set eeprom program flag
+                I2C_EE_BufWrite(&ee_flag, STS_EE_ADDR, 1);  // set eeprom program flag
             }
             else
             {
@@ -744,7 +735,7 @@ uint16_t save_conf_reg(uint8_t addr_sel)
     }
     else
     {
-        I2C_EE_BufWrite((uint8_t *)conf_reg, ee_save_addr, (CONF_REG_MAP_NUM)*2); //save configuration data to eeprom
+        I2C_EE_BufWrite((uint8_t *)conf_reg, ee_save_addr, (CONF_REG_MAP_NUM)*2);  // save configuration data to eeprom
         for (i = 0; i < 10; i++)
             ;
         I2C_EE_BufRead((uint8_t *)test_reg, ee_save_addr, (CONF_REG_MAP_NUM)*2);
@@ -757,9 +748,9 @@ uint16_t save_conf_reg(uint8_t addr_sel)
         }
         if (err_cnt == 0)
         {
-            chk_res = checksum_u16(conf_reg, CONF_REG_MAP_NUM); //set parameter checksum
+            chk_res = checksum_u16(conf_reg, CONF_REG_MAP_NUM);  // set parameter checksum
             I2C_EE_BufWrite((uint8_t *)&chk_res, ee_save_addr + (CONF_REG_MAP_NUM * 2), 2);
-            I2C_EE_BufWrite(&ee_flag, STS_EE_ADDR, 1); //set eeprom program flag
+            I2C_EE_BufWrite(&ee_flag, STS_EE_ADDR, 1);  // set eeprom program flag
         }
     }
 
@@ -770,7 +761,7 @@ static uint16_t init_load_default(void)
 {
     uint16_t i, ret;
     ret = 1;
-    for (i = 0; i < CONF_REG_MAP_NUM; i++) //initialize global variable with default values
+    for (i = 0; i < CONF_REG_MAP_NUM; i++)  // initialize global variable with default values
     {
 #ifdef SYS_HMI_VJL
         if (conf_reg_map_inst[i].reg_ptr != NULL)
@@ -785,10 +776,10 @@ static uint16_t init_load_default(void)
                 *(conf_reg_map_inst[i].reg_ptr) = conf_reg_map_inst[i].dft;
             }
         }
-        else //三元组信息恢复到内存变量
+        else  //三元组信息恢复到内存变量
         {
             uint16_t sum = 0, sum_reg;
-            sum_reg = sum;
+            sum_reg      = sum;
             sum += conf_reg_read_ee(i);
             if (sum != sum_reg)
             {
@@ -805,29 +796,30 @@ static uint16_t init_load_default(void)
 }
 
 /**
-  * @brief  load system configuration data from eeprom
-  * @param  None
-  * @retval None
-  */
+ * @brief  load system configuration data from eeprom
+ * @param  None
+ * @retval None
+ */
 
 static uint16_t conf_reg_read_ee(uint16_t addr)
 {
     uint16_t reg;
     uint16_t ee_err, ret;
-    reg = 0;
+    reg    = 0;
     ee_err = 0;
-    ret = 0;
+    ret    = 0;
     ee_err = eeprom_compare_read(addr, &reg);
 
-    if ((conf_reg_map_inst[addr].reg_ptr != NULL) && ((reg < conf_reg_map_inst[addr].min) || (reg > conf_reg_map_inst[addr].max)))
+    if ((conf_reg_map_inst[addr].reg_ptr != NULL) &&
+        ((reg < conf_reg_map_inst[addr].min) || (reg > conf_reg_map_inst[addr].max)))
     {
         *(conf_reg_map_inst[addr].reg_ptr) = (conf_reg_map_inst[addr].dft);
-        ret = 0;
+        ret                                = 0;
     }
     else
     {
         *(conf_reg_map_inst[addr].reg_ptr) = reg;
-        ret = 1;
+        ret                                = 1;
     }
 
     if ((ee_err != 0) || (ret == 0))
@@ -874,12 +866,13 @@ static uint16_t init_load_factory_conf(void)
     uint16_t ee_load_addr;
     ee_load_addr = CONF_REG_FACT_ADDR;
 
-    I2C_EE_BufRead((uint8_t *)buf_reg, ee_load_addr, (CONF_REG_MAP_NUM + 1) * 2); //read eeprom data & checksum to data buffer
-    rt_thread_delay(1);                                                           //wait for i2c opeartion comletion
+    I2C_EE_BufRead((uint8_t *)buf_reg, ee_load_addr,
+                   (CONF_REG_MAP_NUM + 1) * 2);  // read eeprom data & checksum to data buffer
+    rt_thread_delay(1);                          // wait for i2c opeartion comletion
     chk_res = checksum_u16(buf_reg, (CONF_REG_MAP_NUM + 1));
-    if (chk_res != 0) //eeprom configuration data checksum fail
+    if (chk_res != 0)  // eeprom configuration data checksum fail
     {
-        for (i = 0; i < CONF_REG_MAP_NUM; i++) //initialize global variable with default values
+        for (i = 0; i < CONF_REG_MAP_NUM; i++)  // initialize global variable with default values
         {
 #ifdef SYS_HMI_VJL
             if (conf_reg_map_inst[i].reg_ptr != NULL)
@@ -894,7 +887,7 @@ static uint16_t init_load_factory_conf(void)
                     *(conf_reg_map_inst[i].reg_ptr) = conf_reg_map_inst[i].dft;
                 }
             }
-            else //三元组信息恢复到内存变量
+            else  //三元组信息恢复到内存变量
             {
                 sum_reg = sum;
                 sum += conf_reg_read_ee(i);
@@ -919,10 +912,10 @@ static uint16_t init_load_factory_conf(void)
 }
 
 /**
-  * @brief  initialize system status reg data
-  * @param  None
-  * @retval None
-  */
+ * @brief  initialize system status reg data
+ * @param  None
+ * @retval None
+ */
 static void init_load_status(void)
 {
     uint16_t i;
@@ -934,113 +927,117 @@ static void init_load_status(void)
         }
     }
 
-    //		I2C_EE_BufRead((uint8_t *)&g_sys.status.run_time,STS_REG_EE1_ADDR,sizeof(g_sys.status.run_time));	//read legacy checksum data
-    I2C_EE_BufRead((uint8_t *)&g_sys.status.ComSta.u16Runtime, STS_REG_EE1_ADDR, sizeof(g_sys.status.ComSta.u16Runtime));
+    //		I2C_EE_BufRead((uint8_t *)&g_sys.status.run_time,STS_REG_EE1_ADDR,sizeof(g_sys.status.run_time));	//read
+    // legacy checksum data
+    I2C_EE_BufRead((uint8_t *)&g_sys.status.ComSta.u16Runtime, STS_REG_EE1_ADDR,
+                   sizeof(g_sys.status.ComSta.u16Runtime));
     //累计流量
-    I2C_EE_BufRead((uint8_t *)&g_sys.status.ComSta.u16Cumulative_Water[0], STS_REG_EE1_ADDR + sizeof(g_sys.status.ComSta.u16Runtime), 6); //u16Cumulative_Water,
-//		l_sys.u32WaterFlow=g_sys.status.ComSta.u16Cumulative_Water[1];
-//		l_sys.u32WaterFlow<<=16;
-//		l_sys.u32WaterFlow+=g_sys.status.ComSta.u16Cumulative_Water[0];
+    I2C_EE_BufRead((uint8_t *)&g_sys.status.ComSta.u16Cumulative_Water[0],
+                   STS_REG_EE1_ADDR + sizeof(g_sys.status.ComSta.u16Runtime), 6);  // u16Cumulative_Water,
+    //		l_sys.u32WaterFlow=g_sys.status.ComSta.u16Cumulative_Water[1];
+    //		l_sys.u32WaterFlow<<=16;
+    //		l_sys.u32WaterFlow+=g_sys.status.ComSta.u16Cumulative_Water[0];
 }
 
 /**
   * @brief  system configurable variables initialization
   * @param  None
-  * @retval 
-			1:	load default data
-			2:	load eeprom data
+  * @retval
+            1:	load default data
+            2:	load eeprom data
   */
 uint16_t sys_global_var_init(void)
 {
     uint16_t ret;
     init_state_em em_init_state;
-    em_init_state = get_ee_status(); //get eeprom init status
+    em_init_state = get_ee_status();  // get eeprom init status
     init_load_status();
     switch (em_init_state)
     {
-    case (INIT_LOAD_USR): //load usr1 data
+        case (INIT_LOAD_USR):  // load usr1 data
+        {
+            ret = init_load_user_conf();
+            if (ret == 1)
+            {
+                g_sys.status.status_remap[0] |= 0x01;
+                rt_kprintf("Usr conf file loaded successfully.\n");
+            }
+            else
+            {
+                g_sys.status.status_remap[0] &= 0xFFFE;
+                rt_kprintf("Usr conf file loaded failed.\n");
+            }
+            break;
+        }
+        case (INIT_LOAD_FACT):  // load factory data
+        {
+            ret = init_load_factory_conf();
+            if (ret == 1)
+            {
+                save_conf_reg(0);
+                set_load_flag(0);
+                g_sys.status.status_remap[0] |= 0x01;
+                rt_kprintf("Factory conf file loaded successfully.\n");
+            }
+            else
+            {
+                g_sys.status.status_remap[0] &= 0xFFFE;
+                rt_kprintf("Factory conf file loaded failed.\n");
+            }
+            break;
+        }
+        case (INIT_LOAD_DEBUT):  // resotre default configuration data, include reset password to default values
+        {
+            ret = init_load_default();
+            if (ret == 1)
+            {
+                g_sys.status.status_remap[0] |= 0x01;
+                save_conf_reg(0);
+                save_conf_reg(1);
+                set_load_flag(0);
+                //            // reset dev run time
+                //            reset_runtime(0xff);
+                rt_kprintf("INIT_LOAD_DEBUT loaded successfully.\n");
+            }
+            else
+            {
+                g_sys.status.status_remap[0] &= 0xFFFE;
+                rt_kprintf("INIT_LOAD_DEBUT loaded failed.\n");
+            }
+            break;
+        }
+        default: //resotre default configuration data, include reset password to default values
     {
-        ret = init_load_user_conf();
-        if (ret == 1)
-        {
-            g_sys.status.status_remap[0] |= 0x01;
-            rt_kprintf("Usr conf file loaded successfully.\n");
+            ret = init_load_default();
+            if (ret == 1)
+            {
+                g_sys.status.status_remap[0] |= 0x01;
+                rt_kprintf("Default conf data load successfully.\n");
+            }
+            else
+            {
+                g_sys.status.status_remap[0] &= 0xFFFE;
+                rt_kprintf("Default conf file loaded failed.\n");
+            }
+            break;
         }
-        else
-        {
-            g_sys.status.status_remap[0] &= 0xFFFE;
-            rt_kprintf("Usr conf file loaded failed.\n");
-        }
-        break;
-    }
-    case (INIT_LOAD_FACT): //load factory data
-    {
-        ret = init_load_factory_conf();
-        if (ret == 1)
-        {
-            save_conf_reg(0);
-            set_load_flag(0);
-            g_sys.status.status_remap[0] |= 0x01;
-            rt_kprintf("Factory conf file loaded successfully.\n");
-        }
-        else
-        {
-            g_sys.status.status_remap[0] &= 0xFFFE;
-            rt_kprintf("Factory conf file loaded failed.\n");
-        }
-        break;
-    }
-    case (INIT_LOAD_DEBUT): //resotre default configuration data, include reset password to default values
-    {
-        ret = init_load_default();
-        if (ret == 1)
-        {
-            g_sys.status.status_remap[0] |= 0x01;
-            save_conf_reg(0);
-            save_conf_reg(1);
-            set_load_flag(0);
-//            // reset dev run time
-//            reset_runtime(0xff);
-            rt_kprintf("INIT_LOAD_DEBUT loaded successfully.\n");
-        }
-        else
-        {
-            g_sys.status.status_remap[0] &= 0xFFFE;
-            rt_kprintf("INIT_LOAD_DEBUT loaded failed.\n");
-        }
-        break;
-    }
-    default: //resotre default configuration data, include reset password to default values
-    {
-        ret = init_load_default();
-        if (ret == 1)
-        {
-            g_sys.status.status_remap[0] |= 0x01;
-            rt_kprintf("Default conf data load successfully.\n");
-        }
-        else
-        {
-            g_sys.status.status_remap[0] &= 0xFFFE;
-            rt_kprintf("Default conf file loaded failed.\n");
-        }
-        break;
-    }
     }
     //测试模式和诊断模式复位。
     g_sys.config.ComPara.u16Manual_Test_En = 0;
-    g_sys.config.general.alarm_bypass_en = 0;
+    g_sys.config.general.alarm_bypass_en   = 0;
     g_sys.config.ComPara.u16Test_Mode_Type = 0;
 
     //出水
     g_sys.config.ComPara.u16ExitWater_Mode = 0;
-    g_sys.config.ComPara.u16Water_Mode = 0;
-    g_sys.config.ComPara.u16Water_Flow = 0;
-		//网络异常
-		g_sys.config.Platform.Net_ERR=0;
-		
-		g_sys.config.ComPara.u16CycleStart=0;//关闭循环
+    g_sys.config.ComPara.u16Water_Mode     = 0;
+    g_sys.config.ComPara.u16Water_Flow     = 0;
+    //网络异常
+    g_sys.config.Platform.Net_ERR = 0;
 
-    //	rt_kprintf("EVENT_REC   start =%d ,end =%d ,size = %d\n", EVENT_REC_PT_ADDR, EE_REC_END, (EE_REC_END - EVENT_REC_PT_ADDR));
+    g_sys.config.ComPara.u16CycleStart = 0;  //关闭循环
+
+    //	rt_kprintf("EVENT_REC   start =%d ,end =%d ,size = %d\n", EVENT_REC_PT_ADDR, EE_REC_END, (EE_REC_END -
+    // EVENT_REC_PT_ADDR));
     return ret;
 }
 
@@ -1055,7 +1052,7 @@ uint16_t sys_local_var_init(void)
             l_sys.require[i][j] = 0;
         }
     }
-    //MAX REQ initialization
+    // MAX REQ initialization
     l_sys.require[MAX_REQ][T_REQ] = 100;
     l_sys.require[MAX_REQ][H_REQ] = 0;
 
@@ -1084,23 +1081,23 @@ uint16_t sys_local_var_init(void)
     {
         l_sys.l_fsm_state[i] = 0;
     }
-    l_sys.debug_flag = 0;
+    l_sys.debug_flag    = 0;
     l_sys.debug_tiemout = DEBUG_TIMEOUT_MAX;
     //		l_sys.debug_flag = 1;
     //		l_sys.debug_tiemout = DEBUG_TIMEOUT_MAX;
-    l_sys.t_fsm_signal = 0;
+    l_sys.t_fsm_signal    = 0;
     l_sys.ec_fan_diff_reg = 0;
     l_sys.ec_fan_suc_temp = 0;
 
-    l_sys.TH_Check_Delay = 5; //上电后延迟5秒
+    l_sys.TH_Check_Delay = 5;  //上电后延迟5秒
     return 1;
 }
 
 /**
-  * @brief  get current system permission
-  * @param  None
-  * @retval current system permission level
-  */
+ * @brief  get current system permission
+ * @param  None
+ * @retval current system permission level
+ */
 uint16_t get_sys_permission(void)
 {
     return g_sys.status.general.permission_level;
@@ -1135,7 +1132,7 @@ int16_t eeprom_compare_read(uint16 reg_offset_addr, uint16_t *rd_data)
     I2C_EE_BufRead((uint8_t *)&rd_buf1, CONF_REG_EE2_ADDR + (reg_offset_addr << 1), 2);
     I2C_EE_BufRead((uint8_t *)&rd_buf2, CONF_REG_EE3_ADDR + (reg_offset_addr << 1), 2);
 
-    //normal situation
+    // normal situation
     if ((rd_buf0 == rd_buf1) && (rd_buf2 == rd_buf1))
     {
         if (rd_buf0)
@@ -1145,17 +1142,17 @@ int16_t eeprom_compare_read(uint16 reg_offset_addr, uint16_t *rd_data)
     else if ((rd_buf0 == rd_buf1) || (rd_buf0 == rd_buf2) || (rd_buf1 == rd_buf2))
     {
         *rd_data = rd_buf0;
-        if (rd_buf0 == rd_buf1) //buf2!= buf1
+        if (rd_buf0 == rd_buf1)  // buf2!= buf1
         {
             *rd_data = rd_buf0;
             eeprom_singel_write(CONF_REG_EE3_ADDR, reg_offset_addr, rd_buf0, rd_buf2);
         }
-        else if (rd_buf0 == rd_buf2) //buf2 = buf0, buf1错
+        else if (rd_buf0 == rd_buf2)  // buf2 = buf0, buf1错
         {
             *rd_data = rd_buf2;
             eeprom_singel_write(CONF_REG_EE2_ADDR, reg_offset_addr, rd_buf2, rd_buf1);
         }
-        else //(rd_buf1 == rd_buf2)
+        else  //(rd_buf1 == rd_buf2)
         {
             *rd_data = rd_buf1;
             eeprom_singel_write(CONF_REG_EE1_ADDR, reg_offset_addr, rd_buf1, rd_buf0);
@@ -1163,10 +1160,10 @@ int16_t eeprom_compare_read(uint16 reg_offset_addr, uint16_t *rd_data)
         var_log("eeprom_compare_read :reg_offset_addr_ERRO= %d \n", reg_offset_addr);
         ret = 0;
     }
-    else //三个都错误
+    else  //三个都错误
     {
         *rd_data = 0x7fff;
-        ret = 1;
+        ret      = 1;
         var_log("eeprom_compare_read :reg_offset_addr_ALL_ERRO= %d \n", reg_offset_addr);
     }
     return (ret);
@@ -1192,12 +1189,12 @@ int16_t eeprom_tripple_write(uint16 reg_offset_addr, uint16 wr_data, uint16_t rd
     }
     err_no = 0;
 
-    //write data to eeprom
+    // write data to eeprom
     err_no += I2C_EE_BufWrite((uint8_t *)&wr_data_buf, CONF_REG_EE1_ADDR + (reg_offset_addr << 1), 2);
     err_no += I2C_EE_BufWrite((uint8_t *)&wr_data_buf, CONF_REG_EE2_ADDR + (reg_offset_addr << 1), 2);
     err_no += I2C_EE_BufWrite((uint8_t *)&wr_data_buf, CONF_REG_EE3_ADDR + (reg_offset_addr << 1), 2);
 
-    //write checksum data to eeprom
+    // write checksum data to eeprom
     err_no += I2C_EE_BufWrite((uint8_t *)&ee_rd_cheksum, CONF_REG_EE1_ADDR + (CONF_REG_MAP_NUM * 2), 2);
     err_no += I2C_EE_BufWrite((uint8_t *)&ee_rd_cheksum, CONF_REG_EE2_ADDR + (CONF_REG_MAP_NUM * 2), 2);
     err_no += I2C_EE_BufWrite((uint8_t *)&ee_rd_cheksum, CONF_REG_EE3_ADDR + (CONF_REG_MAP_NUM * 2), 2);
@@ -1206,18 +1203,18 @@ int16_t eeprom_tripple_write(uint16 reg_offset_addr, uint16 wr_data, uint16_t rd
 }
 
 /**
-  * @brief  write register map with constraints.
-  * @param  reg_addr: reg map address.
-  * @param  wr_data: write data. 
-  * @param  permission_flag:  
-  *   This parameter can be one of the following values:
-  *     @arg PERM_PRIVILEGED: write opertion can be performed dispite permission level
-  *     @arg PERM_INSPECTION: write operation could only be performed when pass permission check
-  * @retval 
-  *   This parameter can be one of the following values:
-  *     @arg 1: write operation success
-  *     @arg 0: write operation fail
-  */
+ * @brief  write register map with constraints.
+ * @param  reg_addr: reg map address.
+ * @param  wr_data: write data.
+ * @param  permission_flag:
+ *   This parameter can be one of the following values:
+ *     @arg PERM_PRIVILEGED: write opertion can be performed dispite permission level
+ *     @arg PERM_INSPECTION: write operation could only be performed when pass permission check
+ * @retval
+ *   This parameter can be one of the following values:
+ *     @arg 1: write operation success
+ *     @arg 0: write operation fail
+ */
 uint16 reg_map_write(uint16 reg_addr, uint16 *wr_data, uint8_t wr_cnt, uint16 User_ID)
 {
     uint16_t i;
@@ -1227,13 +1224,13 @@ uint16 reg_map_write(uint16 reg_addr, uint16 *wr_data, uint8_t wr_cnt, uint16 Us
     err_code = CPAD_ERR_NOERR;
     //			g_sys.status.general.TEST=0x01;
     sys_permission = get_sys_permission();
-    //modebus_slave permission_high_lev
+    // modebus_slave permission_high_lev
     sys_permission = 4;
     if (User_ID == USER_MODEBUS_SLAVE)
     {
         sys_permission = 3;
     }
-    if ((reg_addr + wr_cnt) > CONF_REG_MAP_NUM) //address range check
+    if ((reg_addr + wr_cnt) > CONF_REG_MAP_NUM)  // address range check
     {
         err_code = CPAD_ERR_ADDR_OR;
         //			rt_kprintf("MB_SLAVE CPAD_ERR_ADDR_OR1 failed\n");
@@ -1242,7 +1239,7 @@ uint16 reg_map_write(uint16 reg_addr, uint16 *wr_data, uint8_t wr_cnt, uint16 Us
     }
     //			g_sys.status.general.TEST|=0x02;
 
-    for (i = 0; i < wr_cnt; i++) //permission check
+    for (i = 0; i < wr_cnt; i++)  // permission check
     {
         if (conf_reg_map_inst[reg_addr + i].permission > sys_permission)
         {
@@ -1253,7 +1250,7 @@ uint16 reg_map_write(uint16 reg_addr, uint16 *wr_data, uint8_t wr_cnt, uint16 Us
         }
     }
 
-    for (i = 0; i < wr_cnt; i++) //writablility check
+    for (i = 0; i < wr_cnt; i++)  // writablility check
     {
         if (conf_reg_map_inst[reg_addr + i].rw != 1)
         {
@@ -1264,9 +1261,10 @@ uint16 reg_map_write(uint16 reg_addr, uint16 *wr_data, uint8_t wr_cnt, uint16 Us
         }
     }
     //			g_sys.status.general.TEST|=0x04;
-    for (i = 0; i < wr_cnt; i++) //min_max limit check
+    for (i = 0; i < wr_cnt; i++)  // min_max limit check
     {
-        if ((*(wr_data + i) > conf_reg_map_inst[reg_addr + i].max) || (*(wr_data + i) < conf_reg_map_inst[reg_addr + i].min)) //min_max limit check
+        if ((*(wr_data + i) > conf_reg_map_inst[reg_addr + i].max) ||
+            (*(wr_data + i) < conf_reg_map_inst[reg_addr + i].min))  // min_max limit check
         {
             err_code = CPAD_ERR_DATA_OR;
             //						rt_kprintf("CPAD_ERR_WR_OR03 failed\n");
@@ -1286,11 +1284,11 @@ uint16 reg_map_write(uint16 reg_addr, uint16 *wr_data, uint8_t wr_cnt, uint16 Us
         }
     }
     //				g_sys.status.general.TEST|=0x08;
-    for (i = 0; i < wr_cnt; i++) //data write
+    for (i = 0; i < wr_cnt; i++)  // data write
     {
-        ee_rd_data = *(conf_reg_map_inst[reg_addr + i].reg_ptr);     //buffer legacy reg data
-        ee_wr_data = *(wr_data + i);                                 //buffer current write data
-        *(conf_reg_map_inst[reg_addr + i].reg_ptr) = *(wr_data + i); //write data to designated register
+        ee_rd_data = *(conf_reg_map_inst[reg_addr + i].reg_ptr);      // buffer legacy reg data
+        ee_wr_data = *(wr_data + i);                                  // buffer current write data
+        *(conf_reg_map_inst[reg_addr + i].reg_ptr) = *(wr_data + i);  // write data to designated register
         //						g_sys.status.general.TEST|=0x10;
         //		var_log("ee_rd_data=%d,ee_wr_data=%X\n,", ee_rd_data, ee_wr_data);
         //写EEPROM参数
@@ -1299,22 +1297,22 @@ uint16 reg_map_write(uint16 reg_addr, uint16 *wr_data, uint8_t wr_cnt, uint16 Us
             return err_code;
         }
 
-        eeprom_tripple_write(i + reg_addr, ee_wr_data, ee_rd_data); //数据写入EEPROM
-        //event_Recrd
+        eeprom_tripple_write(i + reg_addr, ee_wr_data, ee_rd_data);  //数据写入EEPROM
+        // event_Recrd
         add_eventlog_fifo(i + reg_addr, (User_ID << 8) | g_sys.status.general.permission_level, ee_rd_data, ee_wr_data);
         //	rt_kprintf("reg_map_write I2C_EE_BufRead ADDR \n");
     }
     return err_code;
 }
 /**
-  * @brief  read register map.
-  * @param  reg_addr: reg map address.
-	* @param  *rd_data: read data buffer ptr.
-  * @retval 
-  *   This parameter can be one of the following values:
-  *     @arg 1: write operation success
-  *     @arg 0: read operation fail
-  */
+ * @brief  read register map.
+ * @param  reg_addr: reg map address.
+ * @param  *rd_data: read data buffer ptr.
+ * @retval
+ *   This parameter can be one of the following values:
+ *     @arg 1: write operation success
+ *     @arg 0: read operation fail
+ */
 uint16 reg_map_read(uint16 reg_addr, uint16 *reg_data, uint8_t read_cnt)
 {
     uint16_t i;
@@ -1324,7 +1322,7 @@ uint16 reg_map_read(uint16 reg_addr, uint16 *reg_data, uint8_t read_cnt)
     if ((reg_addr & 0x8000) != 0)
     {
         reg_addr &= 0x7fff;
-        if (reg_addr > STATUS_REG_MAP_NUM) //address out of range
+        if (reg_addr > STATUS_REG_MAP_NUM)  // address out of range
         {
             err_code = CPAD_ERR_ADDR_OR;
         }
@@ -1332,14 +1330,14 @@ uint16 reg_map_read(uint16 reg_addr, uint16 *reg_data, uint8_t read_cnt)
         {
             for (i = 0; i < read_cnt; i++)
             {
-                *(reg_data + i) = *(status_reg_map_inst[reg_addr + i].reg_ptr); //read data from designated register
+                *(reg_data + i) = *(status_reg_map_inst[reg_addr + i].reg_ptr);  // read data from designated register
             }
         }
     }
     else if ((reg_addr & 0x4000) != 0)
     {
         reg_addr &= 0x3fff;
-        if (reg_addr > CMD_REG_SIZE) //address out of range
+        if (reg_addr > CMD_REG_SIZE)  // address out of range
         {
             err_code = CPAD_ERR_ADDR_OR;
         }
@@ -1347,14 +1345,14 @@ uint16 reg_map_read(uint16 reg_addr, uint16 *reg_data, uint8_t read_cnt)
         {
             for (i = 0; i < read_cnt; i++)
             {
-                *(reg_data + i) = cpad_usSRegHoldBuf[reg_addr + i]; //read data from designated register
+                *(reg_data + i) = cpad_usSRegHoldBuf[reg_addr + i];  // read data from designated register
             }
         }
     }
     else
     {
         reg_addr = reg_addr;
-        if (reg_addr > CONF_REG_MAP_NUM) //address out of range
+        if (reg_addr > CONF_REG_MAP_NUM)  // address out of range
         {
             err_code = CPAD_ERR_ADDR_OR;
         }
@@ -1362,7 +1360,7 @@ uint16 reg_map_read(uint16 reg_addr, uint16 *reg_data, uint8_t read_cnt)
         {
             for (i = 0; i < read_cnt; i++)
             {
-                *(reg_data + i) = *(conf_reg_map_inst[reg_addr + i].reg_ptr); //read data from designated register
+                *(reg_data + i) = *(conf_reg_map_inst[reg_addr + i].reg_ptr);  // read data from designated register
             }
         }
     }
@@ -1370,11 +1368,11 @@ uint16 reg_map_read(uint16 reg_addr, uint16 *reg_data, uint8_t read_cnt)
 }
 
 /**
-  * @brief  show register map content.
-  * @param  reg_addr: reg map address.
-	* @param  *rd_data: register read count.
-  * @retval none
-  */
+ * @brief  show register map content.
+ * @param  reg_addr: reg map address.
+ * @param  *rd_data: register read count.
+ * @retval none
+ */
 static void show_reg_map(uint16_t reg_addr, uint16_t reg_cnt)
 {
     uint16_t reg_buf[32];
@@ -1426,9 +1424,10 @@ uint8_t reset_runtime(uint16_t param)
             g_sys.status.ComSta.u16Runtime[0][i] = 0;
             g_sys.status.ComSta.u16Runtime[1][i] = 0;
         }
-				l_sys.u32WaterFlow =0;
+        l_sys.u32WaterFlow = 0;
         memset((uint8_t *)&g_sys.status.ComSta.u16Cumulative_Water[0], 0x00, 6);
-        I2C_EE_BufWrite((uint8_t *)&g_sys.status.ComSta.u16Cumulative_Water[0], STS_REG_EE1_ADDR + sizeof(g_sys.status.ComSta.u16Runtime), 6); //u16Cumulative_Water,
+        I2C_EE_BufWrite((uint8_t *)&g_sys.status.ComSta.u16Cumulative_Water[0],
+                        STS_REG_EE1_ADDR + sizeof(g_sys.status.ComSta.u16Runtime), 6);  // u16Cumulative_Water,
     }
     else
     {
@@ -1444,7 +1443,8 @@ uint8_t reset_runtime(uint16_t param)
     }
     if (req == 1)
     {
-        I2C_EE_BufWrite((uint8_t *)&g_sys.status.ComSta.u16Runtime, STS_REG_EE1_ADDR, sizeof(g_sys.status.ComSta.u16Runtime));
+        I2C_EE_BufWrite((uint8_t *)&g_sys.status.ComSta.u16Runtime, STS_REG_EE1_ADDR,
+                        sizeof(g_sys.status.ComSta.u16Runtime));
     }
 
     return (req);
@@ -1463,7 +1463,7 @@ uint8_t load_factory_pram(void)
     return (req);
 }
 
-//void write_passward1 (uint16_t work_mode)
+// void write_passward1 (uint16_t work_mode)
 //{
 //
 //		uint8_t pass[4]={0x12,0x34,0x56,0x78};
@@ -1484,7 +1484,7 @@ uint8_t load_factory_pram(void)
 //
 //}
 
-//void cpad_work_mode1(uint16_t work_mode)
+// void cpad_work_mode1(uint16_t work_mode)
 //{
 //
 //		//cpad_work_mode(work_mode,2);
@@ -1499,7 +1499,7 @@ uint8_t load_factory_pram(void)
 //				rt_kprintf("g_sys.status.sys_work_mode.pass_word[3] = %d\n",g_sys.status.sys_work_mode.pass_word[3]);
 //}
 
-//void test_fsm(void)
+// void test_fsm(void)
 //{
 ////		I2C_EE_BufRead((uint8_t*)&g_sys.status.sys_work_mode.work_mode,WORK_MODE_EE_ADDR,sizeof(work_mode_st));
 //		rt_kprintf("g_sys.status.sys_work_mode.work_mode = %d\n",g_sys.status.sys_work_mode.work_mode);
@@ -1517,45 +1517,54 @@ static void sys_dbg(uint16_t flag)
 {
     if (flag == 1)
     {
-        l_sys.debug_flag = DEBUG_ON_FLAG;
+        l_sys.debug_flag    = DEBUG_ON_FLAG;
         l_sys.debug_tiemout = DEBUG_TIMEOUT_MAX;
     }
     else if (flag == 223)
     {
-        l_sys.debug_flag = DEBUG_ON_FLAG;
+        l_sys.debug_flag    = DEBUG_ON_FLAG;
         l_sys.debug_tiemout = DEBUG_TIMEOUT_NA;
     }
     else
     {
-        l_sys.debug_flag = DEBUG_OFF_FLAG;
+        l_sys.debug_flag    = DEBUG_OFF_FLAG;
         l_sys.debug_tiemout = 0;
     }
 }
 
 void eeprom_addr(void)
 {
-    rt_kprintf("user1 conf  start =%d ,end =%d ,size = %d\n", CONF_REG_EE1_ADDR, CONF_REG_EE2_ADDR, (CONF_REG_EE2_ADDR - CONF_REG_EE1_ADDR));
-    rt_kprintf("user2 conf  start =%d ,end =%d ,size = %d\n", CONF_REG_EE2_ADDR, CONF_REG_EE3_ADDR, (CONF_REG_EE3_ADDR - CONF_REG_EE2_ADDR));
-    rt_kprintf("user3 conf  start =%d ,end =%d ,size = %d\n", CONF_REG_EE3_ADDR, CONF_REG_FACT_ADDR, (CONF_REG_FACT_ADDR - CONF_REG_EE3_ADDR));
-    rt_kprintf("fact  conf  start =%d ,end =%d ,size = %d\n", CONF_REG_FACT_ADDR, STS_REG_EE1_ADDR, (STS_REG_EE1_ADDR - CONF_REG_FACT_ADDR));
-    rt_kprintf("status reg1 start =%d ,end =%d ,size = %d\n", STS_REG_EE1_ADDR, STS_REG_EE2_ADDR, (STS_REG_EE2_ADDR - STS_REG_EE1_ADDR));
-    rt_kprintf("status reg2 start =%d ,end =%d ,size = %d\n", STS_REG_EE2_ADDR, WORK_MODE_EE_ADDR, (WORK_MODE_EE_ADDR - STS_REG_EE2_ADDR));
-    rt_kprintf("work_mode   start =%d ,end =%d ,size = %d\n", WORK_MODE_EE_ADDR, AlARM_TABLE_ADDR, (AlARM_TABLE_ADDR - WORK_MODE_EE_ADDR));
-    rt_kprintf("alarm_table start =%d ,end =%d ,size = %d\n", AlARM_TABLE_ADDR, TEM_HUM_PT_ADDR, (TEM_HUM_PT_ADDR - AlARM_TABLE_ADDR));
-    rt_kprintf("TEM_HUM_REC start =%d ,end =%d ,size = %d\n", TEM_HUM_PT_ADDR, ALARM_REC_PT_ADDR, (ALARM_REC_PT_ADDR - TEM_HUM_PT_ADDR));
-    rt_kprintf("ALARM_REC   start =%d ,end =%d ,size = %d\n", ALARM_REC_PT_ADDR, EVENT_REC_PT_ADDR, (EVENT_REC_PT_ADDR - ALARM_REC_PT_ADDR));
-    rt_kprintf("EVENT_REC   start =%d ,end =%d ,size = %d\n", EVENT_REC_PT_ADDR, EE_REC_END, (EE_REC_END - EVENT_REC_PT_ADDR));
+    rt_kprintf("user1 conf  start =%d ,end =%d ,size = %d\n", CONF_REG_EE1_ADDR, CONF_REG_EE2_ADDR,
+               (CONF_REG_EE2_ADDR - CONF_REG_EE1_ADDR));
+    rt_kprintf("user2 conf  start =%d ,end =%d ,size = %d\n", CONF_REG_EE2_ADDR, CONF_REG_EE3_ADDR,
+               (CONF_REG_EE3_ADDR - CONF_REG_EE2_ADDR));
+    rt_kprintf("user3 conf  start =%d ,end =%d ,size = %d\n", CONF_REG_EE3_ADDR, CONF_REG_FACT_ADDR,
+               (CONF_REG_FACT_ADDR - CONF_REG_EE3_ADDR));
+    rt_kprintf("fact  conf  start =%d ,end =%d ,size = %d\n", CONF_REG_FACT_ADDR, STS_REG_EE1_ADDR,
+               (STS_REG_EE1_ADDR - CONF_REG_FACT_ADDR));
+    rt_kprintf("status reg1 start =%d ,end =%d ,size = %d\n", STS_REG_EE1_ADDR, STS_REG_EE2_ADDR,
+               (STS_REG_EE2_ADDR - STS_REG_EE1_ADDR));
+    rt_kprintf("status reg2 start =%d ,end =%d ,size = %d\n", STS_REG_EE2_ADDR, WORK_MODE_EE_ADDR,
+               (WORK_MODE_EE_ADDR - STS_REG_EE2_ADDR));
+    rt_kprintf("work_mode   start =%d ,end =%d ,size = %d\n", WORK_MODE_EE_ADDR, AlARM_TABLE_ADDR,
+               (AlARM_TABLE_ADDR - WORK_MODE_EE_ADDR));
+    rt_kprintf("alarm_table start =%d ,end =%d ,size = %d\n", AlARM_TABLE_ADDR, TEM_HUM_PT_ADDR,
+               (TEM_HUM_PT_ADDR - AlARM_TABLE_ADDR));
+    rt_kprintf("TEM_HUM_REC start =%d ,end =%d ,size = %d\n", TEM_HUM_PT_ADDR, ALARM_REC_PT_ADDR,
+               (ALARM_REC_PT_ADDR - TEM_HUM_PT_ADDR));
+    rt_kprintf("ALARM_REC   start =%d ,end =%d ,size = %d\n", ALARM_REC_PT_ADDR, EVENT_REC_PT_ADDR,
+               (EVENT_REC_PT_ADDR - ALARM_REC_PT_ADDR));
+    rt_kprintf("EVENT_REC   start =%d ,end =%d ,size = %d\n", EVENT_REC_PT_ADDR, EE_REC_END,
+               (EE_REC_END - EVENT_REC_PT_ADDR));
 }
 FINSH_FUNCTION_EXPORT(eeprom_addr, show_ee_addr_table);
 FINSH_FUNCTION_EXPORT(sys_dbg, system debug switchs.);
-//FINSH_FUNCTION_EXPORT(test_fsm, test_test_fasm.);
-//FINSH_FUNCTION_EXPORT(write_passward1, test_test_cpad_work_mode.);
-//FINSH_FUNCTION_EXPORT(cpad_work_mode1, test_test_write_passward.);
+// FINSH_FUNCTION_EXPORT(test_fsm, test_test_fasm.);
+// FINSH_FUNCTION_EXPORT(write_passward1, test_test_cpad_work_mode.);
+// FINSH_FUNCTION_EXPORT(cpad_work_mode1, test_test_write_passward.);
 FINSH_FUNCTION_EXPORT(reset_runtime, reset run_time eeprom &regs.);
 FINSH_FUNCTION_EXPORT(show_reg_map, show registers map.);
 FINSH_FUNCTION_EXPORT(write_reg_map, write data into conf registers.);
 FINSH_FUNCTION_EXPORT(set_load_flag, set sys init load option.);
 FINSH_FUNCTION_EXPORT(save_conf_reg, save current conf reg data.);
 FINSH_FUNCTION_EXPORT(read_eeprom, read eeprom content eeprom flag.);
-
-

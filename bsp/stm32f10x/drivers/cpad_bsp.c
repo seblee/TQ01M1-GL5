@@ -6,8 +6,7 @@
 #include "rtc_bsp.h"
 #include "authentication.h"
 #include <time.h>
-#include "event_record.h"
-#include "password.h"
+#include "event_record.h" 
 #include "mb_event_cpad.h"
 #include "can_bsp.h"
 #include "sys_status.h"

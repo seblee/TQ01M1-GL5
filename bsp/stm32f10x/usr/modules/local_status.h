@@ -22,7 +22,7 @@ enum
     REQ_MAX_LEVEL,
 };
 
-//global FSM states definition
+// global FSM states definition
 enum
 {
     T_FSM_TOP_ID = 0,
@@ -31,7 +31,7 @@ enum
     H_FSM_MAX_ID_CNT
 };
 
-//global top-level FSM states definition
+// global top-level FSM states definition
 enum
 {
     T_FSM_STATE_IDLE = 0,
@@ -60,14 +60,14 @@ enum
     DEHUMER_FSM_STATE,
     HUMIDIFIER_FSM_STATE,
     WATERVALVE_FSM_STATE,
-    DP_FSM_STATE, //双电源
+    DP_FSM_STATE,  //双电源
     L_FSM_STATE_MAX_NUM,
 };
 
 enum
 {
-    COMP_CONSTANT_FRE = 0, //定频
-    COMP_QABP,             //变频
+    COMP_CONSTANT_FRE = 0,  //定频
+    COMP_QABP,              //变频
 };
 
 enum
@@ -79,11 +79,11 @@ enum
 };
 
 /*
-@signal:	system operating mode 
-	1:	power on signal
-	2:	power down signal
-	3:	sys on signal
-	4:	sys down signal
+@signal:	system operating mode
+    1:	power on signal
+    2:	power down signal
+    3:	sys on signal
+    4:	sys down signal
 */
 
 typedef struct
@@ -95,12 +95,12 @@ typedef struct
 
 typedef struct
 {
-    int16_t set_point;  //Desired Value
-    double proportion;  //Proportional Const
-    double integral;    //Integral Const
-    double derivative;  //Derivative Const
-    int16_t last_error; //Error[-1]
-    int16_t prev_error; //Error[-2]
+    int16_t set_point;   // Desired Value
+    double proportion;   // Proportional Const
+    double integral;     // Integral Const
+    double derivative;   // Derivative Const
+    int16_t last_error;  // Error[-1]
+    int16_t prev_error;  // Error[-2]
 } pid_param_st;
 
 typedef struct
@@ -111,10 +111,10 @@ typedef struct
 
 typedef struct
 {
-    uint16_t Fan_Dehumer_Delay; //风机档位延时,Alair，20161113
-    uint8_t Fan_Dehumer_State;  //风机档位,Alair，20161113
-    uint8_t Fan_Gear;           //风机档位,Alair，20161113
-    uint8_t Fan_default_cnt;    //异常风机个数
+    uint16_t Fan_Dehumer_Delay;  //风机档位延时,Alair，20161113
+    uint8_t Fan_Dehumer_State;   //风机档位,Alair，20161113
+    uint8_t Fan_Gear;            //风机档位,Alair，20161113
+    uint8_t Fan_default_cnt;     //异常风机个数
 } Fan_st;
 
 typedef struct
@@ -133,43 +133,42 @@ typedef struct
     uint16_t l_fsm_state[L_FSM_STATE_MAX_NUM];
     pid_st pid;
     Fan_st Fan;
-    uint8_t Fan_Close;       //风机开关信号
-    uint8_t Comp_Close[2];   //压缩机开关信号
-    uint8_t Water_Full;      //满水信号
-    uint8_t Pwp_Open;        //净化泵开关信号
-    uint16_t Pwp_Open_Time;  //净化泵打开时间
-    uint8_t Sterilize;       //杀菌
-    uint8_t OutWater_Flag;   //出水中
-    uint8_t OutWater_OK;     //出水完成
-    uint8_t HeatWater_st;    //加热器出水状态
+    uint8_t Fan_Close;        //风机开关信号
+    uint8_t Comp_Close[2];    //压缩机开关信号
+    uint8_t Water_Full;       //满水信号
+    uint8_t Pwp_Open;         //净化泵开关信号
+    uint16_t Pwp_Open_Time;   //净化泵打开时间
+    uint8_t OutWater_Flag;    //出水中
+    uint8_t OutWater_OK;      //出水完成
+    uint8_t HeatWater_st;     //加热器出水状态
     uint8_t HeatWater_CMD;    //加热器出水状态
-    uint16_t HeatWater_Flow; //加热器出水流量
-    uint16_t HeatWater_Time; //加热器出水时间
-    uint8_t Cold_Water;      //制冰水信号
-    uint8_t Cold_Delay[2];      //制水延迟
+    uint16_t HeatWater_Flow;  //加热器出水流量
+    uint16_t HeatWater_Time;  //加热器出水时间
+    uint8_t Cold_Water;       //制冰水信号
+    uint8_t Cold_Delay[2];    //制水延迟
     uint16_t u16BD_Time;
     uint16_t u16BD_FAN_Delay;
-    uint8_t SEL_Jump; //跳线选择
+    uint8_t SEL_Jump;  //跳线选择
     uint16_t comp_startup_interval;
     uint16_t comp_stop_interval;
-    uint16_t PowerOn_Time;      //开机计时
-    uint16_t TH_Check_Interval; //温湿度检测间隔
-    uint16_t TH_Check_Delay;    //温湿度检测间隔
-    uint8_t Set_Systime_Flag;   //设置系统时间标识
-    uint8_t Set_Systime_Delay;  //设置系统等待延时
-    uint8_t OutWater_Key;       //按键出水
-    uint16_t OutWater_Delay[3]; //按键出水延时
-    uint8_t ChildLock_Key;      //童锁
-    uint8_t ChildLock_Cnt[2];   //童锁计数器
-    uint16_t u16Uart_Timeout[2];   //串口重启
-    uint8_t u8RSInteral_Neterr;		//网络异常
-    uint8_t u8CloseDelay;       //关闭延迟
-		uint16_t	u16UV_Delay;//关闭延迟	
-    uint32_t u32WaterFlow;      //出水流量
-    uint8_t u8Storage_Status;    //贮存状态
-		uint8_t u8Storage_Fsm;    	//贮存状态机
-		uint8_t	u8ExitFill;//注水中
-		uint16_t	u16Fill_Delay[3];//注水延迟	
+    uint16_t PowerOn_Time;        //开机计时
+    uint16_t TH_Check_Interval;   //温湿度检测间隔
+    uint16_t TH_Check_Delay;      //温湿度检测间隔
+    uint8_t Set_Systime_Flag;     //设置系统时间标识
+    uint8_t Set_Systime_Delay;    //设置系统等待延时
+    uint8_t OutWater_Key;         //按键出水
+    uint16_t OutWater_Delay[3];   //按键出水延时
+    uint8_t ChildLock_Key;        //童锁
+    uint8_t ChildLock_Cnt[2];     //童锁计数器
+    uint16_t u16Uart_Timeout[2];  //串口重启
+    uint8_t u8RSInteral_Neterr;   //网络异常
+    uint8_t u8CloseDelay;         //关闭延迟
+    uint16_t u16UV_Delay;         //关闭延迟
+    uint32_t u32WaterFlow;        //出水流量
+    uint8_t u8Storage_Status;     //贮存状态
+    uint8_t u8Storage_Fsm;        //贮存状态机
+    uint8_t u8ExitFill;           //注水中
+    uint16_t u16Fill_Delay[3];    //注水延迟
 } local_reg_st;
 
 enum
@@ -194,11 +193,11 @@ enum
     FAN_GEAR_HIGH,
 };
 #define FAN_GEAR_START FAN_GEAR_LOW
-//Alair,20170304,水阀使能状态
+// Alair,20170304,水阀使能状态
 enum
 {
     WATER_OFF = 0,
     WATER_ON,
 };
 
-#endif //__LOCAL_REG_H__
+#endif  //__LOCAL_REG_H__

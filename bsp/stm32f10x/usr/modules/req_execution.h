@@ -2,10 +2,9 @@
 #define __REQ_EXE_H__
 #include "stdint.h"
 
-
 //#define WV_TEST 1	//制冷阀常闭，反向
 //#define BD_COLD 	1	//冰胆制冷
-#define PUMP_TEST 1	//制冷阀常闭，反向
+#define PUMP_TEST 1  //制冷阀常闭，反向
 
 #define HUM_CURRENT_UNIT 1.19
 enum
@@ -13,10 +12,10 @@ enum
     HUM_FSM_STATE_IDLE = 0,
     HUM_FSM_STATE_CHECK,
     HUM_FSM_STATE_WARM,
-    HUM_FSM_STATE_DRAIN, //排水
-    HUM_FSM_STATE_HUM,   //加湿
-    HUM_FSM_STATE_FILL,  //注水
-    HUM_FSM_STATE_FLUSH, //冲刷换水
+    HUM_FSM_STATE_DRAIN,  //排水
+    HUM_FSM_STATE_HUM,    //加湿
+    HUM_FSM_STATE_FILL,   //注水
+    HUM_FSM_STATE_FLUSH,  //冲刷换水
 
 };
 
@@ -24,7 +23,7 @@ enum
 {
     HUM_TYPE_FIX,
     HUM_TYPE_P,
-    HUM_TYPE_INFRARED, //红外加湿
+    HUM_TYPE_INFRARED,  //红外加湿
 };
 
 enum
@@ -66,22 +65,22 @@ enum
 //出水模式
 enum
 {
-    WATER_NO = 0x00,
+    WATER_NO         = 0x00,
     WATER_NORMAL_ICE = 0x01,
-    WATER_HEAT = 0x02,
-    WATER_ICE = 0x04, //冰水
-    WATER_HEATPOT = 0x08,//热灌
+    WATER_HEAT       = 0x02,
+    WATER_ICE        = 0x04,  //冰水
+    WATER_HEATPOT    = 0x08,  //热灌
 };
 //冰水模式
 enum
 {
-    ICE_NO = 0x00,
-    NORMAL_ICE = 0x01, //阀冰水
-    BD_ICE = 0x02,     //冰胆
+    ICE_NO     = 0x00,
+    NORMAL_ICE = 0x01,  //阀冰水
+    BD_ICE     = 0x02,  //冰胆
 };
 
-#define COLD_FV_DELAY 	2   //1S
-#define COLD_START_DELAY 	60   //1M
+#define COLD_FV_DELAY 2      // 1S
+#define COLD_START_DELAY 60  // 1M
 
 #define BD_TIME 180
 #define BD_DELAY 60
@@ -89,10 +88,10 @@ enum
 //水路控制方案
 enum
 {
-    HEART_POT = 0x01, //热灌
-    HMI_KEY = 0x02,
-    OPEN_PWP = 0x04, //开盖时，打开净化泵
-    TWO_COLD = 0x08, //双路出水
+    HEART_POT = 0x01,  //热灌
+    HMI_KEY   = 0x02,
+    OPEN_PWP  = 0x04,  //开盖时，打开净化泵
+    TWO_COLD  = 0x08,  //双路出水
 };
 #define ChildKey_Cnt 1
 #define ChildKey_Lose 5
@@ -100,39 +99,54 @@ enum
 //水源模式
 enum
 {
-    WATER_AIR = 0x00,
-    WATER_FLUSH = 0x01, //
-    WATER_FILL = 0x02, //注水
-    WATER_Disinfection = 0x03, //消毒
+    WATER_AIR          = 0x00,
+    WATER_FLUSH        = 0x01,  //
+    WATER_FILL         = 0x02,  //注水
+    WATER_Disinfection = 0x03,  //消毒
 };
 
 //水位
 enum
 {
-    S_L = 0x01,
-    S_M = 0x02,
-    S_U = 0x04,
-    D_L = 0x08, //制水
-    D_M = 0x10, //满水
-    D_U = 0x20,
-    D_ML = 0x40, //制冷水位,中水位
+    S_L  = 0x01,
+    S_M  = 0x02,
+    S_U  = 0x04,
+    D_L  = 0x08,  //制水
+    D_M  = 0x10,  //满水
+    D_U  = 0x20,
+    D_ML = 0x40,  //制冷水位,中水位
 };
 
 //水位
 enum
 {
-		FILL_ZERO = 	0, //缺水
-    FILL_L = 	1, //低水
-    FILL_ML = 2, //制冷水位,中水位
-    FILL_M = 	3, //满水
+    FILL_ZERO = 0,  //缺水
+    FILL_L    = 1,  //低水
+    FILL_ML   = 2,  //制冷水位,中水位
+    FILL_M    = 3,  //满水
+};
+#define COUNT3S 6
+//水位
+enum
+{
+    FLOATBALLIDEL = 0,  //浮球IDEL
+    FLOATBALLL    = 1,  //浮球下
+    FLOATBALLM    = 2,  //浮球中
+    FLOATBALLH    = 4,  //浮球上
 };
 
+typedef enum
+{
+    COLLECTIDEL = 0,
+    COLLECTHALF = 1,
+    COLLECTFULL = 2,
+} CollectState;
 //流量脉冲
 enum
 {
-    L200 = 380,
-    L300 = 570,
-    L500 = 1250,
+    L200  = 380,
+    L300  = 570,
+    L500  = 1250,
     L1000 = 2750,
     L1500 = 4350,
     L2000 = 5450,
@@ -169,7 +183,7 @@ enum
 //加热器出水状态
 enum
 {
-    HEAT_NO = 0,
+    HEAT_NO       = 0,
     HEAT_OUTWATER = 0x01,
 };
 
@@ -187,31 +201,31 @@ enum
 #define STERILIZE_BIT0 0x01
 #define STERILIZE_BIT1 0x02
 //单次出水时间限制
-#define WATER_MAXTIME 300 * 2 //5分钟
+#define WATER_MAXTIME 300 * 2  // 5分钟
 
 //定时保存时间
 #define FIXED_SAVETIME 900
 enum
 {
-    FAN_MODE_FIX = 0,       //定速模式
-    FAN_MODE_PRESS_DIFF,    //压差模式
-    FAN_MODE_AVR_RETURN,    //回风平均
-    FAN_MODE_AVR_SUPPLY,    //送风平均
-    FAN_MODE_TEMP_DIFF,     //温差平均
-    FAN_MODE_MAX_RETURN,    //回风热点
-    FAN_MODE_MAX_SUPPLY,    //送风热点
-    FAN_MODE_TEMP_MAX_DIFF, //温差热点
-    FAM_MODE_INV_COMP,      //变频跟踪
+    FAN_MODE_FIX = 0,        //定速模式
+    FAN_MODE_PRESS_DIFF,     //压差模式
+    FAN_MODE_AVR_RETURN,     //回风平均
+    FAN_MODE_AVR_SUPPLY,     //送风平均
+    FAN_MODE_TEMP_DIFF,      //温差平均
+    FAN_MODE_MAX_RETURN,     //回风热点
+    FAN_MODE_MAX_SUPPLY,     //送风热点
+    FAN_MODE_TEMP_MAX_DIFF,  //温差热点
+    FAM_MODE_INV_COMP,       //变频跟踪
 };
-//Close first
+// Close first
 enum
 {
-    PUMP_FIRET = 0x00,
-    VALVE_FIRST = 0x01, //
+    PUMP_FIRET  = 0x00,
+    VALVE_FIRST = 0x01,  //
 };
 
 //时间
-#define INTERAL_TIME 24*3600*2//间隔24小时
+#define INTERAL_TIME 24 * 3600 * 2  //间隔24小时
 #define CLOSE_TIME 5
 
 void hum_capacity_calc(void);
@@ -220,4 +234,4 @@ void req_bitmap_op(uint8_t component_bpos, uint8_t action);
 void Close_DIS_PWR(uint8_t u8Type);
 void UV_req_exe(uint8_t u8Type);
 uint8_t Sys_Get_Storage_Signal(void);
-#endif //__REQ_EXE_H__
+#endif  //__REQ_EXE_H__

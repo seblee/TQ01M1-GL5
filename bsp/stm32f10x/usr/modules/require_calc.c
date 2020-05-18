@@ -1,12 +1,12 @@
-#include <rtthread.h> 
+#include <rtthread.h>
 #include "sys_conf.h"
 #include "local_status.h"
 #include "daq.h"
-#include "team.h"
+
 #include "require_calc.h"
 #include "req_execution.h"
 #include "sys_status.h"
-//int16_t i16TestMeasure[200] =
+// int16_t i16TestMeasure[200] =
 //{//调试用测量值
 //	200,201,202,203,204,205,206,207,208,209,
 //	210,211,212,213,214,215,216,217,218,219,
@@ -33,23 +33,23 @@
 static pid_reg_st pid_reg_inst;
 
 #define P_DATA 20
-#define I_DATA 3 //0.6
+#define I_DATA 3  // 0.6
 #define D_DATA 1
 
-//static pid_param_st s_pid_param;
+// static pid_param_st s_pid_param;
 
 void inc_pid_param_init(void)
 {
     //    s_pid_param.last_error   = 0; //Error[-1]
     //    s_pid_param.prev_error   = 0; //Error[-2]
 
-    pid_reg_inst.p_saved = 0;
-    pid_reg_inst.i_saved = 0;
+    pid_reg_inst.p_saved   = 0;
+    pid_reg_inst.i_saved   = 0;
     pid_reg_inst.req_saved = 0;
 }
 
 //增量式PID控制设计
-//static int16_t inc_pid_calc(int16_t next_point)
+// static int16_t inc_pid_calc(int16_t next_point)
 //{
 //    extern sys_reg_st			g_sys;
 //    int16_t cur_error, calc_pid; //当前误差
@@ -137,7 +137,8 @@ static int16_t pid_temp_algorithm(int16_t p_new, int16_t *p_saved, int16_t *i_sa
         (*i_saved) = -g_sys.config.algorithm.pid_action_max;
     }
 
-    temp_d_param = (temp_p_param - *p_saved) * g_sys.config.algorithm.temp_diff / g_sys.config.algorithm.sample_interval;
+    temp_d_param =
+        (temp_p_param - *p_saved) * g_sys.config.algorithm.temp_diff / g_sys.config.algorithm.sample_interval;
 
     if (temp_d_param > g_sys.config.algorithm.pid_action_max)
     {
@@ -175,7 +176,7 @@ static int16_t pid_temp_algorithm(int16_t p_new, int16_t *p_saved, int16_t *i_sa
     return temp_req;
 }
 
-//int16_t team_temp_req_calc(uint8_t type)
+// int16_t team_temp_req_calc(uint8_t type)
 //{
 //    extern team_local_st  team_local_inst;
 //    extern sys_reg_st     g_sys;
@@ -188,10 +189,9 @@ static int16_t pid_temp_algorithm(int16_t p_new, int16_t *p_saved, int16_t *i_sa
 //
 //    temp_average_req  = team_temp_average_req_calc();
 ////    team_mode         = (team_local_inst.team_config[TEAM_CONF_MODE] >> TEAM_CONF_TMMOD_BPOS) & 0x0003;
-//    total_work_cnt    = (uint16_t)(team_local_inst.team_config[TEAM_CONF_CNT] & 0xff) - (uint16_t)((team_local_inst.team_config[TEAM_CONF_CNT] >> 8) & 0xff);
-//    total_cnt         = (team_local_inst.team_config[TEAM_CONF_CNT] & 0x00ff);
-//    output_cnt        = 0;
-//    for(i = 0; i < total_cnt; i++)
+//    total_work_cnt    = (uint16_t)(team_local_inst.team_config[TEAM_CONF_CNT] & 0xff) -
+//    (uint16_t)((team_local_inst.team_config[TEAM_CONF_CNT] >> 8) & 0xff); total_cnt         =
+//    (team_local_inst.team_config[TEAM_CONF_CNT] & 0x00ff); output_cnt        = 0; for(i = 0; i < total_cnt; i++)
 //    {
 //        if((team_local_inst.team_bitmap[TEAM_BITMAP_OUTPUT] & (0x0001 << i)) != 0)
 //        {
@@ -215,7 +215,7 @@ static int16_t pid_temp_algorithm(int16_t p_new, int16_t *p_saved, int16_t *i_sa
 //    return ret;
 //}
 
-//int16_t team_temp_average_req_calc(void)
+// int16_t team_temp_average_req_calc(void)
 //{
 //		extern team_local_st team_local_inst;
 //		int16_t temp_req;
@@ -250,11 +250,13 @@ static int16_t pid_temp_algorithm(int16_t p_new, int16_t *p_saved, int16_t *i_sa
 //		for(i = 0; i < total_cnt; i++)
 //		{
 //				if((team_local_inst.team_table[i][TEAM_TAB_TIMEOUT] > 0) &&
-//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) > TEMP_MIN) &&
-//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) < TEMP_MAX))
+//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) >
+//          TEMP_MIN) &&
+//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) <
+//          TEMP_MAX))
 //				{
-//						current_temp += (int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP]));
-//						calc_cnt++;
+//						current_temp += (int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t
+//*)&team_local_inst.team_table[i][TEAM_TAB_TEMP])); 						calc_cnt++;
 //				}
 //		}
 //		if(calc_cnt > 0)
@@ -277,7 +279,8 @@ static int16_t pid_temp_algorithm(int16_t p_new, int16_t *p_saved, int16_t *i_sa
 //				case(PID_ALOGORITHM):
 //				{
 //						temp_req = p_algorithm(current_temp,set_temp,deadband,precision);
-//            temp_req = pid_temp_algorithm(temp_req, &pid_reg_inst.p_saved, &pid_reg_inst.i_saved, &pid_reg_inst.req_saved);
+//            temp_req = pid_temp_algorithm(temp_req, &pid_reg_inst.p_saved, &pid_reg_inst.i_saved,
+//            &pid_reg_inst.req_saved);
 //						break;
 //				}
 //				default:
@@ -304,12 +307,12 @@ static int16_t abs_hum_calc(int16_t hum_relative)
 
     if (g_sys.config.algorithm.ctrl_target_mode == TARGET_MODE_REMOTE)
     {
-        set_temp = g_sys.config.algorithm.remote_air_temp;
+        set_temp     = g_sys.config.algorithm.remote_air_temp;
         current_temp = g_sys.status.sys_tem_hum.remote_air_temp;
     }
     else
     {
-        set_temp = g_sys.config.algorithm.return_air_temp;
+        set_temp     = g_sys.config.algorithm.return_air_temp;
         current_temp = g_sys.status.sys_tem_hum.return_air_temp;
     }
 
@@ -322,7 +325,7 @@ static int16_t abs_hum_calc(int16_t hum_relative)
     return hum_abs;
 }
 
-//static int16_t team_abs_hum_calc(int16_t hum_relative)
+// static int16_t team_abs_hum_calc(int16_t hum_relative)
 //{
 //		extern sys_reg_st		g_sys;
 //		extern team_local_st team_local_inst;
@@ -354,11 +357,13 @@ static int16_t abs_hum_calc(int16_t hum_relative)
 //		for(i = 0; i < total_cnt; i++)
 //		{
 //				if((team_local_inst.team_table[i][TEAM_TAB_TIMEOUT] > 0) &&
-//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) > TEMP_MIN) &&
-//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) < TEMP_MAX))
+//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) >
+//          TEMP_MIN) &&
+//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) <
+//          TEMP_MAX))
 //				{
-//						current_temp += (int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP]));
-//						calc_cnt++;
+//						current_temp += (int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t
+//*)&team_local_inst.team_table[i][TEAM_TAB_TEMP])); 						calc_cnt++;
 //				}
 //		}
 //		if(calc_cnt > 0)
@@ -379,7 +384,7 @@ static int16_t abs_hum_calc(int16_t hum_relative)
 //		return hum_abs;
 //}
 
-//int16_t team_hum_req_calc(uint8_t type)
+// int16_t team_hum_req_calc(uint8_t type)
 //{
 //    extern team_local_st  team_local_inst;
 //    extern sys_reg_st     g_sys;
@@ -392,10 +397,9 @@ static int16_t abs_hum_calc(int16_t hum_relative)
 //
 //    hum_average_req   = team_hum_average_req_calc();
 ////    team_mode         = (team_local_inst.team_config[TEAM_CONF_MODE] >> TEAM_CONF_TMMOD_BPOS) & 0x0003;
-//    total_work_cnt    = (uint16_t)(team_local_inst.team_config[TEAM_CONF_CNT] & 0xff) - (uint16_t)((team_local_inst.team_config[TEAM_CONF_CNT] >> 8) & 0xff);
-//    total_cnt         = (team_local_inst.team_config[TEAM_CONF_CNT] & 0x00ff);
-//    output_cnt        = 0;
-//    for(i = 0; i < total_cnt; i++)
+//    total_work_cnt    = (uint16_t)(team_local_inst.team_config[TEAM_CONF_CNT] & 0xff) -
+//    (uint16_t)((team_local_inst.team_config[TEAM_CONF_CNT] >> 8) & 0xff); total_cnt         =
+//    (team_local_inst.team_config[TEAM_CONF_CNT] & 0x00ff); output_cnt        = 0; for(i = 0; i < total_cnt; i++)
 //    {
 //        if((team_local_inst.team_bitmap[TEAM_BITMAP_OUTPUT] & (0x0001 << i)) != 0)
 //        {
@@ -418,7 +422,7 @@ static int16_t abs_hum_calc(int16_t hum_relative)
 //    return ret;
 //}
 
-//int16_t team_hum_average_req_calc(void)
+// int16_t team_hum_average_req_calc(void)
 //{
 //		extern team_local_st team_local_inst;
 //		int16_t hum_req;
@@ -439,11 +443,13 @@ static int16_t abs_hum_calc(int16_t hum_relative)
 //		for(i=0; i < total_cnt; i++)
 //		{
 //				if((team_local_inst.team_table[i][TEAM_TAB_TIMEOUT] > 0) &&
-//          ((int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) > HUM_MIN) &&
-//          ((int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) < HUM_MAX))
+//          ((int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) >
+//          HUM_MIN) &&
+//          ((int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) <
+//          HUM_MAX))
 //				{
-//						current_hum += (int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP]));
-//						calc_cnt++;
+//						current_hum += (int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t
+//*)&team_local_inst.team_table[i][TEAM_TAB_TEMP])); 						calc_cnt++;
 //				}
 //		}
 //		if(calc_cnt > 0)
@@ -523,23 +529,23 @@ static int16_t local_temp_req_calc(void)
 
     switch (g_sys.config.algorithm.temp_ctrl_mode)
     {
-    case (P_ALOGORITHM):
-    {
-        temp_req = p_algorithm(current_temp, set_temp, g_sys.config.algorithm.temp_deadband, g_sys.config.algorithm.temp_precision);
-        break;
-    }
-    case (PID_ALOGORITHM):
-    {
-        temp_req = p_algorithm(current_temp, set_temp, g_sys.config.algorithm.temp_deadband, g_sys.config.algorithm.temp_precision);
-        temp_req = pid_temp_algorithm(temp_req, &pid_reg_inst.p_saved, &pid_reg_inst.i_saved, &pid_reg_inst.req_saved);
-        //            temp_req = inc_pid_calc(current_temp);
-        break;
-    }
-    default:
-    {
-        temp_req = 0;
-        break;
-    }
+        case (P_ALOGORITHM): {
+            temp_req = p_algorithm(current_temp, set_temp, g_sys.config.algorithm.temp_deadband,
+                                   g_sys.config.algorithm.temp_precision);
+            break;
+        }
+        case (PID_ALOGORITHM): {
+            temp_req = p_algorithm(current_temp, set_temp, g_sys.config.algorithm.temp_deadband,
+                                   g_sys.config.algorithm.temp_precision);
+            temp_req =
+                pid_temp_algorithm(temp_req, &pid_reg_inst.p_saved, &pid_reg_inst.i_saved, &pid_reg_inst.req_saved);
+            //            temp_req = inc_pid_calc(current_temp);
+            break;
+        }
+        default: {
+            temp_req = 0;
+            break;
+        }
     }
     return temp_req;
 }
@@ -585,12 +591,13 @@ static int16_t local_hum_req_calc(void)
     }
     else
     {
-        hum_req = p_algorithm(current_hum, set_hum, g_sys.config.algorithm.hum_deadband, g_sys.config.algorithm.hum_precision);
+        hum_req = p_algorithm(current_hum, set_hum, g_sys.config.algorithm.hum_deadband,
+                              g_sys.config.algorithm.hum_precision);
     }
     return hum_req;
 }
 
-//static int16_t local_fan_req_calc(void)
+// static int16_t local_fan_req_calc(void)
 //{
 //		extern sys_reg_st		g_sys;
 //		extern local_reg_st l_sys;
@@ -608,16 +615,16 @@ static int16_t local_hum_req_calc(void)
 ////		switch(g_sys.config.fan.mode)
 ////		{
 ////			case FAN_MODE_TEMP_DIFF:
-////					real_temp = abs(g_sys.status.sys_tem_hum.return_air_temp - g_sys.status.sys_tem_hum.supply_air_temp);
-////					if((g_sys.status.sys_tem_hum.return_air_temp  == 0x7fff)||(g_sys.status.sys_tem_hum.supply_air_temp == 0x7fff))
-////					{
+////					real_temp = abs(g_sys.status.sys_tem_hum.return_air_temp -
+///g_sys.status.sys_tem_hum.supply_air_temp); /					if((g_sys.status.sys_tem_hum.return_air_temp  ==
+///0x7fff)||(g_sys.status.sys_tem_hum.supply_air_temp == 0x7fff)) /					{
 ////							real_temp = 0x7fff;
 ////					}
 ////				break;
 ////			case FAN_MODE_TEMP_MAX_DIFF:
-////					real_temp = abs(g_sys.status.sys_tem_hum.return_air_max_temp - g_sys.status.sys_tem_hum.supply_air_min_temp);
-////					if((g_sys.status.sys_tem_hum.return_air_max_temp  == 0x7fff)||(g_sys.status.sys_tem_hum.supply_air_min_temp == 0x7fff))
-////					{
+////					real_temp = abs(g_sys.status.sys_tem_hum.return_air_max_temp -
+///g_sys.status.sys_tem_hum.supply_air_min_temp); /					if((g_sys.status.sys_tem_hum.return_air_max_temp  ==
+///0x7fff)||(g_sys.status.sys_tem_hum.supply_air_min_temp == 0x7fff)) /					{
 ////							real_temp = 0x7fff;
 ////					}
 ////				break;
@@ -680,15 +687,17 @@ static int16_t local_hum_req_calc(void)
 //							switch(g_sys.config.fan.mode)
 //							{
 //								case FAN_MODE_TEMP_DIFF:
-//										real_temp = abs(g_sys.status.sys_tem_hum.return_air_temp - g_sys.status.sys_tem_hum.supply_air_temp);
-//										if((g_sys.status.sys_tem_hum.return_air_temp  == 0x7fff)||(g_sys.status.sys_tem_hum.supply_air_temp == 0x7fff))
+//										real_temp = abs(g_sys.status.sys_tem_hum.return_air_temp -
+//g_sys.status.sys_tem_hum.supply_air_temp); 										if((g_sys.status.sys_tem_hum.return_air_temp  ==
+//0x7fff)||(g_sys.status.sys_tem_hum.supply_air_temp == 0x7fff))
 //										{
 //												real_temp = 0x7fff;
 //										}
 //									break;
 //								case FAN_MODE_TEMP_MAX_DIFF:
-//										real_temp = abs(g_sys.status.sys_tem_hum.return_air_max_temp - g_sys.status.sys_tem_hum.supply_air_min_temp);
-//										if((g_sys.status.sys_tem_hum.return_air_max_temp  == 0x7fff)||(g_sys.status.sys_tem_hum.supply_air_min_temp == 0x7fff))
+//										real_temp = abs(g_sys.status.sys_tem_hum.return_air_max_temp -
+//g_sys.status.sys_tem_hum.supply_air_min_temp); 										if((g_sys.status.sys_tem_hum.return_air_max_temp  ==
+//0x7fff)||(g_sys.status.sys_tem_hum.supply_air_min_temp == 0x7fff))
 //										{
 //												real_temp = 0x7fff;
 //										}
@@ -731,7 +740,7 @@ static int16_t local_hum_req_calc(void)
 //		return (abs(fan_req));
 //}
 
-//int16_t team_fan_req_calc(void)
+// int16_t team_fan_req_calc(void)
 //{
 //		extern sys_reg_st		g_sys;
 //		extern team_local_st team_local_inst;
@@ -755,11 +764,13 @@ static int16_t local_hum_req_calc(void)
 //		for(i = 0; i < total_cnt; i++)
 //		{
 //				if((team_local_inst.team_table[i][TEAM_TAB_TIMEOUT] > 0) &&
-//          ((int16_t)team_get_th(TEAM_FAN_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) > TEMP_MIN) &&
-//          ((int16_t)team_get_th(TEAM_FAN_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) < TEMP_MAX))
+//          ((int16_t)team_get_th(TEAM_FAN_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) >
+//          TEMP_MIN) &&
+//          ((int16_t)team_get_th(TEAM_FAN_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) <
+//          TEMP_MAX))
 //				{
-//						real_temp += (int16_t)team_get_th(TEAM_FAN_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP]));
-//						calc_cnt++;
+//						real_temp += (int16_t)team_get_th(TEAM_FAN_REQ_TEMP, *((uint32_t
+//*)&team_local_inst.team_table[i][TEAM_TAB_TEMP])); 						calc_cnt++;
 //				}
 //		}
 //		if(calc_cnt > 0)
@@ -782,7 +793,7 @@ static int16_t local_hum_req_calc(void)
 //		return (abs(fan_req));
 //}
 
-//static uint8_t find_max_serial(int16_t array[])
+// static uint8_t find_max_serial(int16_t array[])
 //{
 //    extern team_local_st team_local_inst;
 //    uint8_t ret, i, total_cnt;
@@ -803,7 +814,7 @@ static int16_t local_hum_req_calc(void)
 //    return ret;
 //}
 
-//static uint8_t find_min_serial(int16_t array[])
+// static uint8_t find_min_serial(int16_t array[])
 //{
 //    extern team_local_st team_local_inst;
 //    uint8_t ret, i, total_cnt;
@@ -824,7 +835,7 @@ static int16_t local_hum_req_calc(void)
 //    return ret;
 //}
 
-//static void choose_sort(int16_t array[], int16_t direct, uint8_t addr_array[])
+// static void choose_sort(int16_t array[], int16_t direct, uint8_t addr_array[])
 //{
 //    extern team_local_st team_local_inst;
 //    uint8_t i, j, total_cnt;
@@ -851,7 +862,7 @@ static int16_t local_hum_req_calc(void)
 //    }
 //}
 
-//int16_t team_config_temp_req_calc(void)
+// int16_t team_config_temp_req_calc(void)
 //{
 //    extern team_local_st  team_local_inst;
 //    extern sys_reg_st		  g_sys;
@@ -892,8 +903,8 @@ static int16_t local_hum_req_calc(void)
 //              break;
 //            case(PID_ALOGORITHM):
 //              temp_req = p_algorithm(current_temp, set_temp, t_deadband, t_precision);
-//              temp_req = pid_temp_algorithm(temp_req, &pid_reg_inst.p_saved, &pid_reg_inst.i_saved, &pid_reg_inst.req_saved);
-//              break;
+//              temp_req = pid_temp_algorithm(temp_req, &pid_reg_inst.p_saved, &pid_reg_inst.i_saved,
+//              &pid_reg_inst.req_saved); break;
 //            default:
 //              temp_req = 0;
 //              break;
@@ -906,7 +917,7 @@ static int16_t local_hum_req_calc(void)
 //    return temp_req;
 //}
 
-//int16_t team_config_hum_req_calc(void)
+// int16_t team_config_hum_req_calc(void)
 //{
 //    extern team_local_st  team_local_inst;
 //    extern sys_reg_st		  g_sys;
@@ -952,7 +963,7 @@ static int16_t local_hum_req_calc(void)
 //    return hum_req;
 //}
 
-//int16_t team_config_fan_req_calc(void)
+// int16_t team_config_fan_req_calc(void)
 //{
 //		extern sys_reg_st		g_sys;
 //		extern team_local_st team_local_inst;
@@ -995,11 +1006,12 @@ static int16_t local_hum_req_calc(void)
 //		}
 //		//int16_t p_algorithm(int16_t real_value, int16_t set_value, uint16_t deadzone, uint16_t precision)
 //		fan_req = p_algorithm(real_temp,target_temp,dead_band,precision);
-////		rt_kprintf("%d, %d, %d, %d, %d, %d\n", team_fan_mode, real_temp, target_temp, dead_band, precision, fan_req);
+////		rt_kprintf("%d, %d, %d, %d, %d, %d\n", team_fan_mode, real_temp, target_temp, dead_band, precision,
+///fan_req);
 //		return (abs(fan_req));
 //}
 
-//void team_table_req_update(void)
+// void team_table_req_update(void)
 //{
 //    uint8_t i;
 //    uint8_t temp_mode, hum_mode, total_cnt;
@@ -1020,23 +1032,26 @@ static int16_t local_hum_req_calc(void)
 //    set_temp        = (int16_t)team_local_inst.team_config[TEAM_CONF_TEMP_SETVAL];
 //    for(i = 0; i < total_cnt; i++)
 //    {
-//        current_temp = (int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP]));
-//        if((team_local_inst.team_table[i][TEAM_TAB_TIMEOUT] > 0) &&
-//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) > TEMP_MIN) &&
-//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) < TEMP_MAX))
+//        current_temp = (int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t
+//        *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])); if((team_local_inst.team_table[i][TEAM_TAB_TIMEOUT] > 0) &&
+//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) >
+//          TEMP_MIN) &&
+//          ((int16_t)team_get_th(TEAM_TEMP_REQ_TEMP, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) <
+//          TEMP_MAX))
 //        {
 //            switch(temp_mode)
 //            {
 //                case(P_ALOGORITHM):
 //                {
-//                    team_local_inst.team_table[i][TEAM_TAB_TEMP_REQ] = p_algorithm(current_temp, set_temp, t_deadband, t_precision);
-//                    break;
+//                    team_local_inst.team_table[i][TEAM_TAB_TEMP_REQ] = p_algorithm(current_temp, set_temp, t_deadband,
+//                    t_precision); break;
 //                }
 //                case(PID_ALOGORITHM):
 //                {
-//                    team_local_inst.team_table[i][TEAM_TAB_TEMP_REQ] = p_algorithm(current_temp, set_temp, t_deadband, t_precision);
-//                    team_local_inst.team_table[i][TEAM_TAB_TEMP_REQ] = pid_temp_algorithm(team_local_inst.team_table[i][TEAM_TAB_TEMP_REQ], &pid_reg_inst.p_saved, &pid_reg_inst.i_saved, &pid_reg_inst.req_saved);
-//                    break;
+//                    team_local_inst.team_table[i][TEAM_TAB_TEMP_REQ] = p_algorithm(current_temp, set_temp, t_deadband,
+//                    t_precision); team_local_inst.team_table[i][TEAM_TAB_TEMP_REQ] =
+//                    pid_temp_algorithm(team_local_inst.team_table[i][TEAM_TAB_TEMP_REQ], &pid_reg_inst.p_saved,
+//                    &pid_reg_inst.i_saved, &pid_reg_inst.req_saved); break;
 //                }
 //                default:
 //                {
@@ -1061,16 +1076,19 @@ static int16_t local_hum_req_calc(void)
 //    set_hum         = (int16_t)team_local_inst.team_config[TEAM_CONF_HUM_SETVAL];
 //    for(i = 0; i < total_cnt; i++)
 //    {
-//        current_hum = (int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP]));
-//        if(hum_mode == HUM_ABSOLUTE)
+//        current_hum = (int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t
+//        *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])); if(hum_mode == HUM_ABSOLUTE)
 //        {
 //            current_hum = abs_hum_calc(current_hum);
 //        }
 //        if((team_local_inst.team_table[i][TEAM_TAB_TIMEOUT] > 0) &&
-//          ((int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) > HUM_MIN) &&
-//          ((int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) < HUM_MAX))
+//          ((int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) >
+//          HUM_MIN) &&
+//          ((int16_t)team_get_th(TEAM_HUM_REQ_HUM, *((uint32_t *)&team_local_inst.team_table[i][TEAM_TAB_TEMP])) <
+//          HUM_MAX))
 //        {
-//            team_local_inst.team_table[i][TEAM_TAB_HUM_REQ] = p_algorithm(current_hum, set_hum, h_deadband, h_precision);
+//            team_local_inst.team_table[i][TEAM_TAB_HUM_REQ] = p_algorithm(current_hum, set_hum, h_deadband,
+//            h_precision);
 //        }
 //        else
 //        {

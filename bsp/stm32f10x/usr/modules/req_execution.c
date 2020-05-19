@@ -82,15 +82,6 @@ void req_bitmap_op(uint8_t component_bpos, uint8_t action)
     {
         l_sys.bitmap[byte_offset][BITMAP_REQ] |= (0x0001 << bit_offset);
     }
-
-    //			if(action == 0)
-    //			{
-    //					l_sys.bitmap[BITMAP_REQ] &= ~(0x0001<<component_bpos);
-    //			}
-    //			else
-    //			{
-    //					l_sys.bitmap[BITMAP_REQ] |= (0x0001<<component_bpos);
-    //			}
 }
 
 //需求模拟输出操作函数
@@ -814,31 +805,6 @@ uint8_t Exit_Water(void)
     }
 }
 
-//外接水源
-void External_Water_exe(uint8_t u8Type)
-{
-    //		uint16_t u16WL;
-    extern sys_reg_st g_sys;
-
-    if (Exit_Water() != WATER_AIR)  //外接水源
-    {
-        if (u8Type == TRUE)  //出水
-        {
-            req_bitmap_op(DO_FV_BPOS, 1);  //外接水源
-        }
-        else
-        {
-            req_bitmap_op(DO_FV_BPOS, 0);  //外接水源
-        }
-    }
-    else
-    {
-        req_bitmap_op(DO_FV_BPOS, 0);
-    }
-
-    return;
-}
-
 //风机,压机启动条件
 void Sys_Fan_CP_WL(void)
 {
@@ -1495,100 +1461,6 @@ void Cold_Water_exe(void)
             }
         }
     }
-#ifdef BD_COLD
-    else if (g_sys.config.ComPara.u16ColdWater_Mode == BD_ICE)  //冰胆模式
-    {
-        return;
-
-        u16Temp |= 0x100;
-
-        if ((u16WL & D_L) && (u16WL & D_ML) && (u8FCW == FALSE))  //到达制冷水位
-        {
-            u16Temp |= 0x200;
-            u8FCW            = TRUE;
-            l_sys.u16BD_Time = BD_TIME;
-        }
-        if (u8FCW == TRUE)
-        {
-            if (l_sys.u16BD_Time > 0)
-            {
-                u16Temp |= 0x400;
-                req_bitmap_op(DO_WP_BPOS, 1);   //泵2
-                req_bitmap_op(DO_EV4_BPOS, 1);  //阀4
-
-                req_bitmap_op(DO_EV1_BPOS, 0);  //阀1
-
-                if (g_sys.config.ComPara.u16CloseFrist == PUMP_FIRET)
-                {
-                    req_bitmap_op(DO_EV2_BPOS, 0);  //阀2
-                }
-                else
-                {
-                    if (l_sys.u8CloseDelay == 0)
-                    {
-                        req_bitmap_op(DO_EV2_BPOS, 0);  //阀2
-                    }
-                }
-                req_bitmap_op(DO_EV3_BPOS, 0);  //阀3
-            }
-            else
-            {
-                if (g_sys.config.ComPara.u16CloseFrist == PUMP_FIRET)
-                {
-                    req_bitmap_op(DO_WP_BPOS, 0);  //泵2
-                }
-                else
-                {
-                    if (l_sys.u8CloseDelay == 0)
-                    {
-                        req_bitmap_op(DO_WP_BPOS, 0);  //泵2
-                    }
-                }
-                req_bitmap_op(DO_EV4_BPOS, 0);  //阀4
-
-                i16Water_Temp = (int16_t)g_sys.status.ComSta.u16Ain[AI_NTC3];
-                if (i16Water_Temp == ABNORMAL_VALUE)  //温度异常
-                {
-                    u16Temp |= 0x800;
-                    req_bitmap_op(DO_BD_BPOS, 0);      // BD
-                    req_bitmap_op(DO_BD_FAN_BPOS, 0);  // BD_FAN
-                }
-                else
-                {
-                    if (i16Water_Temp > g_sys.config.ComPara.u16ColdWater_StartTemp)  //开始制冰水
-                    {
-                        u16Temp |= 0x1000;
-                        u8Coldwater = TRUE;
-                        req_bitmap_op(DO_BD_BPOS, 1);      // BD
-                        req_bitmap_op(DO_BD_FAN_BPOS, 1);  // BD_FAN
-                        l_sys.u16BD_FAN_Delay = BD_DELAY;
-                    }
-                    else if (i16Water_Temp < g_sys.config.ComPara.u16ColdWater_StopTemp)  //关闭
-                    {
-                        u16Temp |= 0x2000;
-                        u8Coldwater = FALSE;
-                        req_bitmap_op(DO_BD_BPOS, 0);  // BD
-                        if (l_sys.u16BD_FAN_Delay == 0)
-                        {
-                            req_bitmap_op(DO_BD_FAN_BPOS, 0);  // BD_FAN
-                        }
-                    }
-                    else  //保持
-                        if (u8Coldwater == TRUE)
-                    {
-                        u16Temp |= 0x4000;
-                        l_sys.Cold_Water = TRUE;
-                        req_bitmap_op(DO_BD_BPOS, 1);      // BD
-                        req_bitmap_op(DO_BD_FAN_BPOS, 1);  // BD_FAN
-                        l_sys.u16BD_FAN_Delay = BD_DELAY;
-                    }
-                }
-            }
-        }
-    }
-#else
-
-#endif
     else
     {
         u16Temp |= 0x8000;
@@ -1824,79 +1696,68 @@ uint8_t getFloatBall3(void)
     return Water_level;
 }
 
-void transformChamberLoop(FunctionalState state)
+void transformChamberStateSet(ChamberState state)
 {
-    if (state)
-    {
-        /**
-         * 关闭阀3
-         * 关闭电磁阀2
-         */
-    }
-    else
-    {
-        /**
-         * 打开阀3
-         * 打开电磁阀2
-         */
-    }
+    l_sys.transformChamberState = state;
 }
-void transformChamberInjection(FunctionalState state)
-{
-    if (state)
-    {
-        /**
-         * 电磁阀3打开
-         * 一二阀3得电
-         */
-    }
-    else
-    {
-        /**
-         * 电磁阀3关闭
-         * 一二阀3失电
-         */
-    }
-}
-void transformChamberEmptyStateSet(FunctionalState state)
-{
-    static uint8_t transformChamberEmptyState = 0;
-    if (state)
-    {
-        transformChamberEmptyState = 0;
-    }
-    else
-    {
-        transformChamberEmptyState = 1;
-    }
-    if (transformChamberEmptyState)
-    {
-    }
-}
-void transformChamberEmpty(void)
+
+void transformChamber(void)
 {
     static uint16_t transformChamberEmptyCount = 0;
-    if (getFloatBall1() & FLOATBALLL)
+    switch (l_sys.transformChamberState)
     {
-        /**
-         * 一二阀3得电
-         * 水泵2启动
-         */
-        transformChamberEmptyCount = 0;
-    }
-    else
-    {
-        if (transformChamberEmptyCount < COUNT3S)
-        {
-            transformChamberEmptyCount++;
-        }
-        else
-        {
+        case TRANSCHAMBERIDEL:
+            l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_EV3 | AUXILIARYDO_PUMP2 | AUXILIARYDO_1_2EV3);
+            break;
+        case TRANSCHAMBERLOOP:
+            l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_EV3 | AUXILIARYDO_1_2EV3);
+            l_sys.auxiliaryBoardDO |= AUXILIARYDO_PUMP2;
             /**
+             * 启动水泵2
+             * 电磁阀3关闭
              * 一二阀3失电
-             * 水泵2停机
              */
-        }
+            break;
+        case TRANSCHAMBERINJECT:
+            l_sys.auxiliaryBoardDO &= ~AUXILIARYDO_PUMP2;
+            l_sys.auxiliaryBoardDO |= (AUXILIARYDO_EV3 | AUXILIARYDO_1_2EV3);
+            /**
+             * 电磁阀3打开
+             * 一二阀3得电
+             * 关闭水泵2
+             */
+            break;
+        case TRANSCHAMBEREMPTY:
+            if (getFloatBall1() & FLOATBALLL)
+            {
+                l_sys.auxiliaryBoardDO &= ~AUXILIARYDO_EV3;
+                l_sys.auxiliaryBoardDO |= (AUXILIARYDO_PUMP2 | AUXILIARYDO_1_2EV3);
+                /**
+                 * 一二阀3得电
+                 * 水泵2启动
+                 * 电磁阀3关闭
+                 */
+                transformChamberEmptyCount = 0;
+            }
+            else
+            {
+                if (transformChamberEmptyCount < COUNT3S)
+                {
+                    transformChamberEmptyCount++;
+                }
+                else
+                {
+                    l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_EV3 | AUXILIARYDO_PUMP2 | AUXILIARYDO_1_2EV3);
+                    /**
+                     * 一二阀3失电
+                     * 水泵2停机
+                     */
+                    l_sys.transformChamberState = TRANSCHAMBERIDEL;
+                }
+            }
+            break;
+        default:
+            break;
     }
 }
 
@@ -1917,137 +1778,113 @@ void compressorWork(FunctionalState state)
 }
 void waterCollectStateSet(CollectState state)
 {
-    static CollectState waterCollectState;
-    waterCollectState = state;
-    if (waterCollectState)
-    {
-    }
+    l_sys.waterCollectState = state;
 }
 void waterCollect(void)
 {
-    static CollectState waterCollectState = COLLECTIDEL;
-    static uint16_t collectHalfCounter    = 0;
-    switch (waterCollectState)
+    static uint16_t collectHalfCounter = 0;
+    uint8_t waterLevel2                = getFloatBall2();
+    req_exe_log("waterLevel2:%d", waterLevel2);
+    switch (l_sys.waterCollectState)
     {
         case COLLECTIDEL:
-            /**
-             * 关闭阀1
-             * 关闭水泵3
-             */
+            req_bitmap_op(DO_EV1_BPOS, 0);
+            req_bitmap_op(DO_PUMP3_BPOS, 0);
+            collectHalfCounter = 0;
             break;
         case COLLECTHALF:
-            if (getFloatBall2() & FLOATBALLL)
+            if (waterLevel2 & FLOATBALLL)
             {
                 collectHalfCounter = 0;
-                /**
-                 * 打开阀1
-                 * 打开水泵3
-                 */
+                req_bitmap_op(DO_EV1_BPOS, 1);
+                req_bitmap_op(DO_PUMP3_BPOS, 1);
             }
             else
             {
                 if (collectHalfCounter < COUNT3S)
                 {
                     collectHalfCounter++;
-                    /**
-                     * 打开阀1
-                     * 打开水泵3
-                     */
+                    req_bitmap_op(DO_EV1_BPOS, 1);
+                    req_bitmap_op(DO_PUMP3_BPOS, 1);
                 }
                 else
                 {
-                    /**
-                     * 关闭阀1
-                     * 关闭水泵3
-                     */
-                    waterCollectState = COLLECTIDEL;
+                    req_bitmap_op(DO_EV1_BPOS, 0);
+                    req_bitmap_op(DO_PUMP3_BPOS, 0);
+                    l_sys.waterCollectState = COLLECTIDEL;
                 }
             }
             break;
         case COLLECTFULL:
-            if (getFloatBall2() & FLOATBALLH)
+            collectHalfCounter = 0;
+            if (waterLevel2 & FLOATBALLH)
             {
-                /**
-                 * 打开阀1
-                 * 打开水泵3
-                 */
+                req_bitmap_op(DO_EV1_BPOS, 1);
+                req_bitmap_op(DO_PUMP3_BPOS, 1);
             }
-            if (getFloatBall2() & FLOATBALLL)
+            if ((waterLevel2 & FLOATBALLL) == 0)
             {
-                /**
-                 * 关闭阀1
-                 * 关闭水泵3
-                 */
+                req_bitmap_op(DO_EV1_BPOS, 0);
+                req_bitmap_op(DO_PUMP3_BPOS, 0);
             }
-
             break;
         default:
             break;
     }
 }
 
-// void automaticClean(void)
-// {
-//     static uint16_t automaticCleanCount = 0;
-//     if (automaticCleanCount)
-//         transformChamberEmpty(ENABLE);
-//     waterCollectStateSet(COLLECTHALF);
-// }
+void automaticClean(void)
+{
+    static uint16_t automaticCleanCount = 0;
+    if (automaticCleanCount)
+        transformChamberEmpty(ENABLE);
+    waterCollectStateSet(COLLECTHALF);
+}
 
-// void lifeWaterOut(void)
-// {
-//     if ((getFloatBall3() & 3) && (EVLongTou))
-//     {
-//         /**
-//          * 水泵1启动
-//          * 电磁阀5打开
-//          */
-//     }
-//     else
-//     {
-//         /**
-//          * 水泵1关闭
-//          * 电磁阀5关闭
-//          */
-//     }
-// }
-// void pureWaterOut(void)
-// {
-//     static uint8_t pureWaterOutState  = 0;
-//     static uint16_t pureWaterOutCount = 0;
-//     if (pureWaterKey)
-//     {
-//         pureWaterOutState = 1;
-//     }
-//     else
-//     {
-//         pureWaterOutState = 0;
-//     }
+void lifeWaterOut(void)
+{
+    if ((getFloatBall3() & FLOATBALLL) && (l_sys.auxiliaryBoardDI & AUXILIARYDI_EVFAUCET))
+    {
+        l_sys.auxiliaryBoardDO |= (AUXILIARYDO_PUMP1 | AUXILIARYDO_EV5);
+    }
+    else
+    {
+        l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_PUMP1 | AUXILIARYDO_EV5);
+    }
+}
+void pureWaterOut(void)
+{
+    static uint8_t pureWaterOutState  = 0;
+    static uint16_t pureWaterOutCount = 0;
+    if (pureWaterKey)
+    {
+        pureWaterOutState = 1;
+    }
+    else
+    {
+        pureWaterOutState = 0;
+    }
 
-//     if (pureWaterOutState)
-//     {
-//         pureWaterOutCount++;
-//         /**
-//          * 电磁阀2打开
-//          * 水泵3启动
-//          */
-//         if (pureWaterOutCount > T8)
-//         {
-//             /**
-//              * 一二阀2得电
-//              */
-//         }
-//     }
-//     else
-//     {
-//         pureWaterOutCount = 0;
-//         /**
-//          * 电磁阀2关闭
-//          * 水泵3停机
-//          * 一二阀2断电
-//          */
-//     }
-// }
+    if (pureWaterOutState)
+    {
+        pureWaterOutCount++;
+        req_bitmap_op(DO_EV2_BPOS, 1);
+        req_bitmap_op(DO_PUMP3_BPOS, 1);
+        if (pureWaterOutCount > T8)
+        {
+            req_bitmap_op(AUXILIARYDO_IN1OUT2EV3, 1);
+        }
+    }
+    else
+    {
+        pureWaterOutCount = 0;
+        /**
+         * 电磁阀2关闭
+         * 水泵3停机
+         * 一二阀2断电
+         */
+    }
+}
 
 // void hotWaterOut(void)
 // {
@@ -2081,35 +1918,30 @@ void waterMakeLogic(void)
 {
     static uint8_t waterMakeState  = 0;
     static uint16_t waterMakeCount = 0;
-    uint16_t T3                    = 0;
+    uint16_t T3                    = 10;
     if ((getFloatBall3() & FLOATBALLM) == 0)  //浮球3中不满
     {
         waterMakeState = 1;
     }
-    req_exe_log("waterMakeState:%d", waterMakeState);
+    req_exe_log("MakeState:%d CollectState %d ", waterMakeState, l_sys.waterCollectState);
     if (waterMakeState == 1)
     {
         if (getFloatBall3() & FLOATBALLH)  //浮球3上满
         {
-            req_exe_log("FLOATBALLH");
             waterMakeState = 0;
             waterCollectStateSet(COLLECTIDEL);
-            transformChamberLoop(DISABLE);
-            transformChamberInjection(DISABLE);
+            transformChamberStateSet(TRANSCHAMBERIDEL);
             compressorWork(ENABLE);
         }
         else
         {
-            req_exe_log("! FLOATBALLH");
             if (getFloatBall1() & FLOATBALLL)
             {
-                transformChamberLoop(ENABLE);
-                transformChamberInjection(DISABLE);
+                transformChamberStateSet(TRANSCHAMBERLOOP);
             }
             else
             {
-                transformChamberLoop(DISABLE);
-                transformChamberInjection(ENABLE);
+                transformChamberStateSet(TRANSCHAMBERINJECT);
             }
             compressorWork(ENABLE);
             waterCollectStateSet(COLLECTFULL);
@@ -2125,7 +1957,7 @@ void waterMakeLogic(void)
         if (waterMakeCount == T3)
         {
             compressorWork(DISABLE);
-            transformChamberEmptyStateSet(ENABLE);
+            transformChamberStateSet(TRANSCHAMBEREMPTY);
             waterCollectStateSet(COLLECTHALF);
             waterMakeCount++;
         }
@@ -2153,5 +1985,8 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
     Restart_DIS_exe();
 
     waterMakeLogic();
-    return;
+
+    waterCollect();
+
+    transformChamber();
 }

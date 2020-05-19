@@ -169,6 +169,10 @@ typedef struct
     uint8_t u8Storage_Fsm;        //贮存状态机
     uint8_t u8ExitFill;           //注水中
     uint16_t u16Fill_Delay[3];    //注水延迟
+    uint8_t waterCollectState;
+    uint8_t transformChamberState;
+    uint8_t auxiliaryBoardDO;
+    uint8_t auxiliaryBoardDI;
 } local_reg_st;
 
 enum

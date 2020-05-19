@@ -12,22 +12,22 @@
 //数字输出映射
 enum
 {
-    DO_COMP1_BPOS = 0,  //压机1启动
-    DO_COMP2_BPOS,      //压机2
-    DO_RH1_BPOS,        //电加热1
-    DO_FAN_BPOS,        //内风机
-    DO_LAMP_BPOS,       //紫外灯1,定时杀菌
-    DO_WV_BPOS,         //冷煤制水阀(压机制冷)
-    DO_CV_BPOS,         //冷煤制冰水阀
-    DO_RSV1_BPOS,       //保留
-    DO_WP_BPOS,         //出水泵//泵2
-    DO_HWP_BPOS,        //热水出水泵
-    DO_PWP_BPOS,        //净化泵//泵1
-    DO_DWP_BPOS,        //杀菌泵
-    DO_DV_BPOS,         //出水阀//阀2
-    DO_FV_BPOS,         //外接进水阀
-    DO_RSV2_BPOS,       //保留
-    DO_EL1_BPOS,        //电子锁1
+    DO_COMP1_BPOS = 0,   //压机1启动
+    DO_COMP2_BPOS,       //压机2
+    DO_RH1_BPOS,         //电加热1
+    DO_FAN_BPOS,         //内风机
+    DO_LAMP_BPOS,        //紫外灯1,定时杀菌
+    DO_WV_BPOS,          //冷煤制水阀(压机制冷)
+    DO_CV_BPOS,          //冷煤制冰水阀
+    DO_IN1OUT2EV1_BPOS,  //保留
+    DO_IN1OUT2EV2_BPOS,  //出水泵//泵2
+    DO_EV1_BPOS,         // DO_HWP_BPOS,  //热水出水泵
+    DO_EV2_BPOS,         // DO_PWP_BPOS,  //净化泵//泵1
+    DO_PUREUV_BPOS,      // DO_DWP_BPOS,  //杀菌泵
+    DO_PUMP3_BPOS,       // DO_DV_BPOS,  //出水阀//阀2
+    DO_FV_BPOS,          //外接进水阀
+    DO_RSV2_BPOS,        //保留
+    DO_EL1_BPOS,         //电子锁1
 
     DO_EL2_BPOS,       //电子锁2
     DO_RSV3_BPOS,      //预留
@@ -58,13 +58,6 @@ enum
 #define DO_FILLTER_ELEMENT_DUMMY_MAX DO_FILLTER_ELEMENT_DUMMY_BPOS_3  //滤网个数
 
 #define DO_FAN_LOW_BPOS DO_FAN_BPOS  //风机低档
-
-#define DO_IN1OUT2EV1_BPOS DO_RSV1_BPOS
-#define DO_IN1OUT2EV2_BPOS DO_WP_BPOS
-#define DO_EV1_BPOS DO_HWP_BPOS
-#define DO_EV2_BPOS DO_PWP_BPOS
-#define DO_PUREUV_BPOS DO_DWP_BPOS  //纯水紫外灯
-#define DO_WP3_BPOS DO_DV_BPOS      //水泵3
 
 // L  双按键出水
 #define DO_WP2_BPOS DO_RSV2_BPOS  //出水泵2

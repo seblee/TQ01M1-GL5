@@ -141,6 +141,25 @@ typedef enum
     COLLECTHALF = 1,
     COLLECTFULL = 2,
 } CollectState;
+typedef enum
+{
+    TRANSCHAMBERIDEL   = 0,
+    TRANSCHAMBERLOOP   = 1,
+    TRANSCHAMBERINJECT = 2,
+    TRANSCHAMBEREMPTY  = 3,
+} ChamberState;
+
+#define AUXILIARYDOZERO (uint8_t)0x00
+#define AUXILIARYDO_IN1OUT2EV3 (uint8_t)0x01
+#define AUXILIARYDO_EV3 (uint8_t)0x02
+#define AUXILIARYDO_EV4 (uint8_t)0x04
+#define AUXILIARYDO_EV5 (uint8_t)0x08
+#define AUXILIARYDO_UV (uint8_t)0x10
+#define AUXILIARYDO_PUMP1 (uint8_t)0x20
+#define AUXILIARYDO_PUMP2 (uint8_t)0x40
+
+#define AUXILIARYDI_EVFAUCET (uint8_t)0x0
+
 //流量脉冲
 enum
 {

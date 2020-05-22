@@ -18,6 +18,15 @@
 #include "auxilary.h"
 #include "local_status.h"
 
+#define CONFIG_DEBUG
+#ifdef CONFIG_DEBUG
+#ifndef auxilary_log
+#define auxilary_log(N, ...) rt_kprintf("##[auxilary %s:%4d] " N "\r\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#endif /* auxilary_log(...) */
+#else
+#define auxilary_log(...)
+#endif /* ! CONFIG_DEBUG */
+
 #define SAMPLE_UART_NAME "uart4"
 
 /* 串口设备句柄 */
@@ -44,8 +53,9 @@ static void recOperation(rt_uint8_t *serialDataIn)
             break;
         case CMD_REG_DOWN:
             break;
-        case CMD_AUX_DI:
-            l_sys.auxiliaryBoardDI = *(serialDataIn + 4);
+        case CMD_AUX_DIAI:
+            l_sys.auxiliaryBoardDI = (*(serialDataIn + 4) << 8) | *(serialDataIn + 5);
+            l_sys.auxiliaryBoardAI = (*(serialDataIn + 6) << 8) | *(serialDataIn + 7);
             break;
         case CMD_AUX_DO:
             break;
@@ -99,7 +109,7 @@ again:
 
     if (rxStep == 2)
     {
-        rt_uint8_t checkSum, checkIndex;
+        rt_uint8_t checkSum, checkIndex, len;
         if (rxCount < rxBuff[3] + 5)
             goto rxContinue;
         checkSum   = getCheckSum(rxBuff);
@@ -107,7 +117,10 @@ again:
         if (checkSum == rxBuff[checkIndex])
         {
             recOperation(rxBuff);
+            len    = rxBuff[3] + 5;
             rxStep = 0;
+            rt_memcpy(rxBuff, rxBuff + len, rxCount - len);
+            rxCount -= len;
         }
         else
         {
@@ -125,7 +138,6 @@ rxContinue:
 static rt_err_t uartByteReceived(rt_device_t dev, rt_size_t size)
 {
     rt_uint32_t rx_length;
-
     /* 从串口读取数据*/
     rx_length = rt_device_read(dev, 0, rxBuff + rxCount, size);
     rxCount += rx_length;
@@ -138,9 +150,10 @@ static rt_uint8_t auxilaryDataRepare(rt_uint8_t *buff)
     *buff          = 0xff;
     rt_memcpy(buff, protocolHeader, 2);
     *(buff + 2) = CMD_AUX_DO;
-    *(buff + 3) = 1;
-    *(buff + 4) = l_sys.auxiliaryBoardDO;
-    *(buff + 5) = getCheckSum(buff);
+    *(buff + 3) = 2;
+    *(buff + 4) = l_sys.auxiliaryBoardDO >> 8;
+    *(buff + 5) = l_sys.auxiliaryBoardDO & 0xff;
+    *(buff + 6) = getCheckSum(buff);
     len         = *(buff + 3) + 5;
     return len;
 }

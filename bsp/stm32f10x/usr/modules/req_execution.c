@@ -1926,7 +1926,7 @@ void waterMakeLogic(void)
     {
         waterMakeState = 1;
     }
-    req_exe_log("MakeState:%d CollectState %d ", waterMakeState, l_sys.waterCollectState);
+    req_exe_log("auxDI %04x auxAI:%d", l_sys.auxiliaryBoardDI, l_sys.auxiliaryBoardAI);
     if (waterMakeState == 1)
     {
         if (getFloatBall3() & FLOATBALLH)  //浮球3上满

@@ -171,8 +171,9 @@ typedef struct
     uint16_t u16Fill_Delay[3];    //注水延迟
     uint8_t waterCollectState;
     uint8_t transformChamberState;
-    uint8_t auxiliaryBoardDO;
-    uint8_t auxiliaryBoardDI;
+    uint16_t auxiliaryBoardDO;
+    uint16_t auxiliaryBoardDI;
+    uint16_t auxiliaryBoardAI;
 } local_reg_st;
 
 enum

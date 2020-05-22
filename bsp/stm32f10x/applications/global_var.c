@@ -103,7 +103,7 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {55, &g_sys.config.ComPara.u16UV_Delay, 0, 1000, 5, 2, 1, NULL},
     {FACTORY_RESET, &g_sys.config.ComPara.u16Reset, 0, 0xFF, 0, 2, 1, NULL},
     {57, &g_sys.config.ComPara.u16Test_Mode_Type, 0, 0xFF, 0, 2, 1, NULL},        // 121
-    {MANUAL_TSET, &g_sys.config.ComPara.u16Manual_Test_En, 0, 2, 0, 2, 1, NULL},  // 122
+    {MANUAL_TSET, &g_sys.config.ComPara.u16Manual_Test_En, 0, 2, 2, 2, 1, NULL},  // 122
     {59, &l_sys.bitmap[0][BITMAP_MANUAL], 0, 0xffff, 0, 1, 1, NULL},
     {60, &g_sys.config.ComPara.u16TPower_En, 0, 1, 0, 2, 1, NULL},
     {61, &g_sys.config.ComPara.u16TPower_On, 0, 0xFFFF, 500, 2, 1, NULL},

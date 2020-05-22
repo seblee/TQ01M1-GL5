@@ -149,16 +149,16 @@ typedef enum
     TRANSCHAMBEREMPTY  = 3,
 } ChamberState;
 
-#define AUXILIARYDOZERO (uint8_t)0x00
-#define AUXILIARYDO_IN1OUT2EV3 (uint8_t)0x01
-#define AUXILIARYDO_EV3 (uint8_t)0x02
-#define AUXILIARYDO_EV4 (uint8_t)0x04
-#define AUXILIARYDO_EV5 (uint8_t)0x08
-#define AUXILIARYDO_UV (uint8_t)0x10
-#define AUXILIARYDO_PUMP1 (uint8_t)0x20
-#define AUXILIARYDO_PUMP2 (uint8_t)0x40
+#define AUXILIARYDOZERO (uint16_t)0x0000
+#define AUXILIARYDO_IN1OUT2EV3 (uint16_t)0x0001
+#define AUXILIARYDO_EV3 (uint16_t)0x0002
+#define AUXILIARYDO_EV4 (uint16_t)0x0004
+#define AUXILIARYDO_EV5 (uint16_t)0x0008
+#define AUXILIARYDO_UV (uint16_t)0x0010
+#define AUXILIARYDO_PUMP1 (uint16_t)0x0020
+#define AUXILIARYDO_PUMP2 (uint16_t)0x0040
 
-#define AUXILIARYDI_EVFAUCET (uint8_t)0x0
+#define AUXILIARYDI_EVFAUCET (uint16_t)0x0001
 
 //流量脉冲
 enum

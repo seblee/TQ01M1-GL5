@@ -26,7 +26,7 @@ enum
     CMD_LED,
     CMD_REG_UP,
     CMD_REG_DOWN,
-    CMD_AUX_DI,
+    CMD_AUX_DIAI,
     CMD_AUX_DO,
 };
 

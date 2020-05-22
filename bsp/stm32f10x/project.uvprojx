@@ -493,6 +493,11 @@
               <FileType>1</FileType>
               <FilePath>.\usr\modules\reg_map_check.c</FilePath>
             </File>
+            <File>
+              <FileName>auxilary.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\usr\modules\auxilary.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -512,11 +517,6 @@
               <FileName>cpad_bsp.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\drivers\cpad_bsp.c</FilePath>
-            </File>
-            <File>
-              <FileName>can_bsp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\drivers\can_bsp.c</FilePath>
             </File>
             <File>
               <FileName>usart_bsp.c</FileName>
@@ -572,11 +572,6 @@
               <FileName>pcf8563.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\drivers\pcf8563.c</FilePath>
-            </File>
-            <File>
-              <FileName>Comm_TDS.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\usr\modules\Comm_TDS.c</FilePath>
             </File>
             <File>
               <FileName>zph01_opt.c</FileName>

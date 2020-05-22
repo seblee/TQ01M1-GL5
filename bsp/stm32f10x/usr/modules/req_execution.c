@@ -1707,10 +1707,10 @@ void transformChamber(void)
     switch (l_sys.transformChamberState)
     {
         case TRANSCHAMBERIDEL:
-            l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_EV3 | AUXILIARYDO_PUMP2 | AUXILIARYDO_1_2EV3);
+            l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_EV3 | AUXILIARYDO_PUMP2 | AUXILIARYDO_IN1OUT2EV3);
             break;
         case TRANSCHAMBERLOOP:
-            l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_EV3 | AUXILIARYDO_1_2EV3);
+            l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_EV3 | AUXILIARYDO_IN1OUT2EV3);
             l_sys.auxiliaryBoardDO |= AUXILIARYDO_PUMP2;
             /**
              * 启动水泵2
@@ -1720,7 +1720,7 @@ void transformChamber(void)
             break;
         case TRANSCHAMBERINJECT:
             l_sys.auxiliaryBoardDO &= ~AUXILIARYDO_PUMP2;
-            l_sys.auxiliaryBoardDO |= (AUXILIARYDO_EV3 | AUXILIARYDO_1_2EV3);
+            l_sys.auxiliaryBoardDO |= (AUXILIARYDO_EV3 | AUXILIARYDO_IN1OUT2EV3);
             /**
              * 电磁阀3打开
              * 一二阀3得电
@@ -1731,7 +1731,7 @@ void transformChamber(void)
             if (getFloatBall1() & FLOATBALLL)
             {
                 l_sys.auxiliaryBoardDO &= ~AUXILIARYDO_EV3;
-                l_sys.auxiliaryBoardDO |= (AUXILIARYDO_PUMP2 | AUXILIARYDO_1_2EV3);
+                l_sys.auxiliaryBoardDO |= (AUXILIARYDO_PUMP2 | AUXILIARYDO_IN1OUT2EV3);
                 /**
                  * 一二阀3得电
                  * 水泵2启动
@@ -1747,7 +1747,7 @@ void transformChamber(void)
                 }
                 else
                 {
-                    l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_EV3 | AUXILIARYDO_PUMP2 | AUXILIARYDO_1_2EV3);
+                    l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_EV3 | AUXILIARYDO_PUMP2 | AUXILIARYDO_IN1OUT2EV3);
                     /**
                      * 一二阀3失电
                      * 水泵2停机
@@ -1837,7 +1837,7 @@ void automaticClean(void)
 {
     static uint16_t automaticCleanCount = 0;
     if (automaticCleanCount)
-        transformChamberEmpty(ENABLE);
+        transformChamberStateSet(TRANSCHAMBEREMPTY);
     waterCollectStateSet(COLLECTHALF);
 }
 
@@ -1856,6 +1856,8 @@ void pureWaterOut(void)
 {
     static uint8_t pureWaterOutState  = 0;
     static uint16_t pureWaterOutCount = 0;
+    uint8_t pureWaterKey              = 1;
+    static uint16_t T8                = 20;
     if (pureWaterKey)
     {
         pureWaterOutState = 1;
@@ -1867,22 +1869,23 @@ void pureWaterOut(void)
 
     if (pureWaterOutState)
     {
-        pureWaterOutCount++;
         req_bitmap_op(DO_EV2_BPOS, 1);
         req_bitmap_op(DO_PUMP3_BPOS, 1);
         if (pureWaterOutCount > T8)
         {
-            req_bitmap_op(AUXILIARYDO_IN1OUT2EV3, 1);
+            req_bitmap_op(DO_IN1OUT2EV2_BPOS, 1);
+        }
+        else
+        {
+            pureWaterOutCount++;
         }
     }
     else
     {
         pureWaterOutCount = 0;
-        /**
-         * 电磁阀2关闭
-         * 水泵3停机
-         * 一二阀2断电
-         */
+        req_bitmap_op(DO_EV2_BPOS, 0);
+        req_bitmap_op(DO_PUMP3_BPOS, 0);
+        req_bitmap_op(DO_IN1OUT2EV2_BPOS, 0);
     }
 }
 
@@ -1977,8 +1980,6 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
     UV_req_exe(TRUE);
     //制冰水
     Cold_Water_exe();
-    //出水
-    // WaterOut_req_exe();
     //除霜
     Defrost_req_exe();
     //显示屏控制
@@ -1986,7 +1987,7 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
 
     waterMakeLogic();
 
-    waterCollect();
-
+    // waterCollect();
+    pureWaterOut();
     transformChamber();
 }

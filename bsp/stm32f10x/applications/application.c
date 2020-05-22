@@ -28,8 +28,7 @@
 #include "thread_entries.h"
 #include "global_var.h"
 #include "event_record.h"
-
-#include "can_bsp.h"
+ 
 #define FLASH_APP_FLAG_ADDR 0x08002f80
 #define FLASH_APP_FLAG_WORD 0xa5a5
 
@@ -62,8 +61,7 @@ static rt_uint8_t di_stack[256];
 static rt_uint8_t daq_stack[512];
 static rt_uint8_t core_stack[512];
 static rt_uint8_t cpad_stack[512];
-static rt_uint8_t bkg_stack[512];
-static rt_uint8_t TDS_stack[512];
+static rt_uint8_t bkg_stack[512]; 
 
 static struct rt_thread modbus_master_thread;
 static struct rt_thread CPAD_slave_thread;
@@ -71,8 +69,7 @@ static struct rt_thread di_thread;
 static struct rt_thread daq_thread;
 static struct rt_thread core_thread;
 static struct rt_thread cpad_thread;
-static struct rt_thread bkg_thread;
-static struct rt_thread TDS_thread;
+static struct rt_thread bkg_thread; 
 
 void set_boot_flag(void);
 
@@ -158,14 +155,7 @@ int rt_application_init(void)
     //    if (mbm_fsm_thread != RT_NULL)
     //        rt_thread_startup(mbm_fsm_thread);
 
-    // TDS读取
-    result = rt_thread_init(&TDS_thread, "TDS", TDS_thread_entry, RT_NULL, (rt_uint8_t *)&TDS_stack[0],
-                            sizeof(TDS_stack), TDS_THREAD_PRIO, 5);
-    if (result == RT_EOK)
-    {
-        rt_thread_startup(&TDS_thread);
-    }
-
+ 
     result = rt_thread_init(&di_thread, "di", di_thread_entry, RT_NULL, (rt_uint8_t *)&di_stack[0], sizeof(di_stack),
                             DI_THREAD_PRIO, 5);
     if (result == RT_EOK)
@@ -214,6 +204,8 @@ int rt_application_init(void)
     // if (net_thead != RT_NULL)
     //     rt_thread_startup(net_thead);
 
+    int auxilaryStart(void);
+    auxilaryStart();
     return 0;
 }
 

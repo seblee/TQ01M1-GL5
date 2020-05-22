@@ -7,8 +7,7 @@
 #include "authentication.h"
 #include <time.h>
 #include "event_record.h" 
-#include "mb_event_cpad.h"
-#include "can_bsp.h"
+#include "mb_event_cpad.h" 
 #include "sys_status.h"
 #define CPAD_RS485_SND_MODE GPIO_SetBits(GPIOA, GPIO_Pin_1)
 #define CPAD_RS485_RCV_MODE GPIO_ResetBits(GPIOA, GPIO_Pin_1)

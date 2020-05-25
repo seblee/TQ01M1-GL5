@@ -20,13 +20,23 @@
 #else
 #define req_exe_log(...)
 #endif /* ! CONFIG_DEBUG */
-enum
+
+/*******DO State*********/
+static rt_uint8_t PUMP3OutPut = 0;
+#define PUMP3COLLECT (rt_uint8_t)(1 << 0)
+#define PUMP3PUREOUT (rt_uint8_t)(1 << 1)
+
+void j25OutPutDO(void)
 {
-    RUNING_STATUS_COOLING_BPOS = 0,
-    RUNING_STATUS_HEATING_BPOS,
-    RUNING_STATUS_HUMIDIFYING_BPOS,
-    RUNING_STATUS_DEHUMING_BPOS,
-};
+    if (PUMP3OutPut)
+    {
+        req_bitmap_op(DO_PUMP3_BPOS, 1);
+    }
+    else
+    {
+        req_bitmap_op(DO_PUMP3_BPOS, 0);
+    }
+}
 
 enum
 {
@@ -50,21 +60,6 @@ enum
 };
 
 extern local_reg_st l_sys;
-
-typedef struct
-{
-    uint16_t time_out;
-    uint16_t flush_delay_timer;
-    uint16_t hum_fill_cnt;
-    uint32_t hum_timer;
-    uint32_t check_timer;
-    uint8_t check_fill_flag;
-    uint8_t check_drain_flag;
-    uint8_t check_flag;
-    uint16_t warm_time;
-} hum_timer;
-
-// static hum_timer hum_delay_timer;
 
 //需求比特位操作函数
 void req_bitmap_op(uint8_t component_bpos, uint8_t action)
@@ -122,12 +117,6 @@ static void req_ao_op(uint8_t component_bpos, int16_t value)
     }
 }
 
-// static void req_pwm_op(uint8_t component_bpos, int16_t value)
-//{
-//
-
-//		l_sys.pwm_list[component_bpos][BITMAP_REQ] = value;
-//}
 //模拟输出跟踪函数，向设置目标，按照步长参数进行变化；
 static int16_t analog_step_follower(int16_t target, uint16_t dev_type)
 {
@@ -1176,73 +1165,6 @@ uint8_t WaterOut_level(void)
 }
 
 // UV开关
-// void UV_req_exe(uint8_t u8Type,uint8_t u8Delay)
-//{
-//		extern sys_reg_st		g_sys;
-//
-//    if (u8Type == TRUE)
-//    {
-//				l_sys.u16UV_Delay=g_sys.config.ComPara.u16UV_Delay*60;
-//        if ((g_sys.config.ComPara.u16Sterilize_Mode&0x0F)== 1) //
-//        {
-//            req_bitmap_op(DO_PUREUV_BPOS, 1); //紫外灯常开
-//        }
-//        else if ((g_sys.config.ComPara.u16Sterilize_Mode&0x0F)== 2) //
-//        {
-//            req_bitmap_op(DO_UV24_BPOS, 1); //紫外灯常开
-//        }
-//        else if ((g_sys.config.ComPara.u16Sterilize_Mode&0x0F)== 4) //
-//        {
-//            req_bitmap_op(DO_PUREUV_BPOS, 1);  //紫外灯常开
-//            req_bitmap_op(DO_UV24_BPOS, 1); //紫外灯常开
-//        }
-//        else
-//        {
-//            req_bitmap_op(DO_PUREUV_BPOS, 1); //紫外灯常开
-//        }
-//    }
-//    else
-//    {
-//				if(g_sys.config.ComPara.u16UV_Delay==999)//常亮
-//				{
-//						return;
-//				}
-//				if (u8Delay == FALSE)//不延时
-//				{
-//						l_sys.u16UV_Delay=0;
-//				}
-//				if(l_sys.u16UV_Delay)//未到0
-//				{
-//						return;
-//				}
-//        if ((g_sys.config.ComPara.u16Sterilize_Mode&0x0F)== 1) //
-//        {
-//            req_bitmap_op(DO_PUREUV_BPOS, 0); //紫外灯常开
-//        }
-//        else if ((g_sys.config.ComPara.u16Sterilize_Mode&0x0F)== 2) //
-//        {
-//            req_bitmap_op(DO_UV24_BPOS, 0); //紫外灯常开
-//        }
-//        else if ((g_sys.config.ComPara.u16Sterilize_Mode&0x0F)== 4) //
-//        {
-//            req_bitmap_op(DO_PUREUV_BPOS, 0);  //紫外灯常开
-//            req_bitmap_op(DO_UV24_BPOS, 0); //紫外灯常开
-//        }
-//        else
-//        {
-//            req_bitmap_op(DO_PUREUV_BPOS, 0); //紫外灯常开
-//        }
-//    }
-
-//
-//		//水位查看LED
-//    if(!(g_sys.config.ComPara.u16Water_Ctrl & HMI_KEY)) //非按键出水,童锁
-//		{
-//        req_bitmap_op(DO_LED_LOCK_BPOS, 1); //
-//		}
-//		return;
-//}
-// UV开关
 void UV_req_exe(uint8_t u8Type)
 {
     extern sys_reg_st g_sys;
@@ -1339,180 +1261,6 @@ void Defrost_req_exe(void)
         sys_set_remap_status(WORK_MODE_STS_REG_NO, DEFROST2_STS_BPOS, 0);
     }
 
-    return;
-}
-
-//制冰水
-void Cold_Water_exe(void)
-{
-    extern sys_reg_st g_sys;
-
-    uint16_t u16WL;
-    uint16_t u16Temp;
-    int16_t i16Water_Temp;
-    static uint8_t u8Coldwater = FALSE;
-
-    if (Exit_Water() != WATER_AIR)  //外接水源
-    {
-        return;
-    }
-    if (!(g_sys.config.dev_mask.din[0] & D_ML))  // 3浮球
-    {
-        return;
-    }
-    u16Temp          = 0;
-    l_sys.Cold_Water = FALSE;
-    u16WL            = Get_Water_level();
-    if (g_sys.config.ComPara.u16ColdWater_Mode == NORMAL_ICE)  //制冰水模式
-    {
-        u16Temp |= 0x01;
-        i16Water_Temp = (int16_t)g_sys.status.ComSta.u16Ain[AI_NTC4];
-        if ((u16WL & D_L) && (u16WL & D_ML) && (i16Water_Temp != ABNORMAL_VALUE))  //到达制冷水位,中水位
-        {
-            u16Temp |= 0x02;
-            if (i16Water_Temp > g_sys.config.ComPara.u16ColdWater_StartTemp)  //开始制冰水
-            {
-                u16Temp |= 0x04;
-
-                l_sys.Cold_Water = TRUE;
-                if (u8Coldwater == FALSE)
-                {
-                    u8Coldwater         = TRUE;
-                    l_sys.Cold_Delay[0] = COLD_START_DELAY;  //延时1M
-                    l_sys.Cold_Delay[1] = COLD_FV_DELAY;     //延时1S
-                }
-                else
-                {
-                }
-            }
-            else if (i16Water_Temp < g_sys.config.ComPara.u16ColdWater_StopTemp)  //关闭
-            {
-                u16Temp |= 0x08;
-                if (u8Coldwater == TRUE)
-                {
-                    u8Coldwater         = FALSE;
-                    l_sys.Cold_Delay[0] = COLD_START_DELAY;  //延时1M
-                    l_sys.Cold_Delay[1] = COLD_FV_DELAY;     //延时1S
-                }
-                else
-                {
-                }
-            }
-            else  //保持
-                if (u8Coldwater == TRUE)
-            {
-                u16Temp |= 0x10;
-                l_sys.Cold_Water = TRUE;
-            }
-        }
-        else
-        {
-            u16Temp |= 0x20;
-            if (u8Coldwater == TRUE)
-            {
-                u8Coldwater         = FALSE;
-                l_sys.Cold_Delay[0] = COLD_START_DELAY;  //延时1M
-                l_sys.Cold_Delay[1] = COLD_FV_DELAY;     //延时1S
-            }
-            else
-            {
-            }
-        }
-
-        //输出控制
-        if (l_sys.Cold_Water == TRUE)  //制冰水
-        {
-            u16Temp |= 0x40;
-            if (l_sys.Cold_Delay[0] == 0)  //延时开启
-            {
-                req_bitmap_op(DO_CV_BPOS, 1);  //制冰水
-                if (l_sys.Cold_Delay[1])
-                {
-                    l_sys.Cold_Delay[1]--;
-                }
-                else
-                {
-#ifdef WV_TEST
-                    req_bitmap_op(DO_WV_BPOS, 0);  //制冷
-#else
-                    req_bitmap_op(DO_WV_BPOS, 1);  //制冷
-#endif
-                }
-            }
-        }
-        else
-        {
-            u16Temp |= 0x80;
-            if (l_sys.Cold_Delay[0] == 0)
-            {
-#ifdef WV_TEST
-                req_bitmap_op(DO_WV_BPOS, 1);  //制冷
-#else
-                req_bitmap_op(DO_WV_BPOS, 0);      //制冷
-#endif
-                if (l_sys.Cold_Delay[1])
-                {
-                    l_sys.Cold_Delay[1]--;
-                }
-                else
-                {
-                    req_bitmap_op(DO_CV_BPOS, 0);  //制冰水关闭
-                }
-            }
-        }
-    }
-    else
-    {
-        u16Temp |= 0x8000;
-#ifdef WV_TEST
-        req_bitmap_op(DO_WV_BPOS, 1);  //制冷
-#else
-        req_bitmap_op(DO_WV_BPOS, 0);              //制冷
-#endif
-        req_bitmap_op(DO_CV_BPOS, 0);  //制冰水
-    }
-    g_sys.status.ComSta.REQ_TEST[3] = u16Temp;
-    //    rt_kprintf("u16Temp=%x,i16Water_Temp=%d,Cold_Delay[0]=%d,u16ColdWater_StartTemp=%d,u16BD_Time=%d\n", u16Temp,
-    //    i16Water_Temp, l_sys.Cold_Delay[0],g_sys.config.ComPara.u16ColdWater_StartTemp,l_sys.u16BD_Time);
-    return;
-}
-
-//扇热风机
-void Heat_Fan_exe(void)
-{
-    extern sys_reg_st g_sys;
-
-    static uint8_t u8Heatfan = 0;
-    int16_t i16Heat_Temp;
-
-    if (g_sys.config.ComPara.u16ColdWater_Mode == BD_ICE)  //冰胆模式
-    {
-        return;
-    }
-    if (Exit_Water() != WATER_AIR)  //外接水源
-    {
-        return;
-    }
-    i16Heat_Temp = (int16_t)g_sys.status.ComSta.u16Ain[AI_NTC3];
-
-    if ((g_sys.config.ComPara.u16Water_Ctrl & TWO_COLD) == 0)  //非双路出冷水
-    {
-        if ((i16Heat_Temp == ABNORMAL_VALUE) || (i16Heat_Temp > g_sys.config.ComPara.u16HeatFan_StartTemp))  //
-        {
-            u8Heatfan = TRUE;
-            req_bitmap_op(DO_HEAT_FAN_BPOS, 1);  //扇热风机
-        }
-        else if ((i16Heat_Temp < g_sys.config.ComPara.u16HeatFan_StopTemp))  //关闭
-        {
-            u8Heatfan = FALSE;
-            req_bitmap_op(DO_HEAT_FAN_BPOS, 0);  //
-        }
-        else  //保持
-            if (u8Heatfan == TRUE)
-        {
-            req_bitmap_op(DO_HEAT_FAN_BPOS, 1);  //扇热风机
-        }
-    }
     return;
 }
 
@@ -1649,7 +1397,7 @@ void Restart_DIS_exe(void)
 
     return;
 }
-uint8_t getFloatBall1(void)
+uint8_t j25GetFloatBall1(void)
 {
     uint8_t Water_level = 0;
     if (sys_get_di_sts(DI_FLOAT1_H_BPOS) == 0)
@@ -1664,7 +1412,7 @@ uint8_t getFloatBall1(void)
 
     return Water_level;
 }
-uint8_t getFloatBall2(void)
+uint8_t j25GetFloatBall2(void)
 {
     uint8_t Water_level = 0;
     if (sys_get_di_sts(DI_FLOAT2_H_BPOS) == 0)
@@ -1677,7 +1425,7 @@ uint8_t getFloatBall2(void)
     }
     return Water_level;
 }
-uint8_t getFloatBall3(void)
+uint8_t j25GetFloatBall3(void)
 {
     uint8_t Water_level = 0;
     if (sys_get_di_sts(DI_FLOAT3_H_BPOS) == 0)
@@ -1696,12 +1444,164 @@ uint8_t getFloatBall3(void)
     return Water_level;
 }
 
-void transformChamberStateSet(ChamberState state)
+void j25WaterCollectStateSet(CollectState state)
+{
+    l_sys.waterCollectState = state;
+}
+void j25WaterCollect(void)
+{
+    static uint16_t collectHalfCounter = 0;
+    uint8_t waterLevel2                = getFloatBall2();
+    req_exe_log("waterLevel2:%d", waterLevel2);
+    switch (l_sys.waterCollectState)
+    {
+        case COLLECTIDEL:
+            req_bitmap_op(DO_EV1_BPOS, 0);
+            PUMP3OutPut &= ~PUMP3COLLECT;
+            collectHalfCounter = 0;
+            break;
+        case COLLECTHALF:
+            if (waterLevel2 & FLOATBALLL)
+            {
+                collectHalfCounter = 0;
+                req_bitmap_op(DO_EV1_BPOS, 1);
+                PUMP3OutPut |= PUMP3COLLECT;
+            }
+            else
+            {
+                if (collectHalfCounter < COUNT3S)
+                {
+                    collectHalfCounter++;
+                    req_bitmap_op(DO_EV1_BPOS, 1);
+                    PUMP3OutPut |= PUMP3COLLECT;
+                }
+                else
+                {
+                    req_bitmap_op(DO_EV1_BPOS, 0);
+                    PUMP3OutPut &= ~PUMP3COLLECT;
+                    l_sys.waterCollectState = COLLECTIDEL;
+                }
+            }
+            break;
+        case COLLECTFULL:
+            collectHalfCounter = 0;
+            if (waterLevel2 & FLOATBALLH)
+            {
+                req_bitmap_op(DO_EV1_BPOS, 1);
+                PUMP3OutPut |= PUMP3COLLECT;
+            }
+            if ((waterLevel2 & FLOATBALLL) == 0)
+            {
+                req_bitmap_op(DO_EV1_BPOS, 0);
+                PUMP3OutPut &= ~PUMP3COLLECT;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void j25DrinkTankEmptyState(FunctionalState state)
+{
+    if (state == 0)
+    {
+        l_sys.j25DrinkTankEmptyState = 0;
+    }
+    else
+    {
+        l_sys.j25DrinkTankEmptyState = 1;
+    }
+}
+
+void j25DrinkTankEmpty(void)
+{
+    static rt_uint16_t j25DrinkTankEmptyCounter = 0;
+    uint8_t waterLevel3                         = getFloatBall3();
+    if (l_sys.j25DrinkTankEmptyState)
+    {
+        if (waterLevel3 & FLOATBALLL)
+        {
+            l_sys.auxiliaryBoardDO |= AUXILIARYDO_EV4;
+            l_sys.auxiliaryBoardDO |= AUXILIARYDO_PUMP1;
+            j25DrinkTankEmptyCounter = 0;
+        }
+        else
+        {
+            if (j25DrinkTankEmptyCounter < COUNT3S)
+            {
+                l_sys.auxiliaryBoardDO |= AUXILIARYDO_EV4;
+                l_sys.auxiliaryBoardDO |= AUXILIARYDO_PUMP1;
+                j25DrinkTankEmptyCounter++;
+            }
+            else
+            {
+                l_sys.j25DrinkTankEmptyState = 0;
+                l_sys.auxiliaryBoardDO &= ~AUXILIARYDO_EV4;
+                l_sys.auxiliaryBoardDO &= ~AUXILIARYDO_PUMP1;
+            }
+        }
+    }
+}
+
+void j25DrinkTankLoop(void)
+{
+    uint8_t j25DrinkTankLoop                 = 0;
+    static rt_uint32_t j25DrinkTankLoopCount = 0;
+    if (j25DrinkTankLoopCount < COUNT3H)
+    {
+        j25DrinkTankLoopCount++;
+        req_bitmap_op(DO_EV2_BPOS, 0);
+        req_bitmap_op(DO_PUMP3_BPOS, 0);
+    }
+    else if (j25DrinkTankLoopCount < (COUNT3H + COUNT20M))
+    {
+        j25DrinkTankLoopCount++;
+        req_bitmap_op(DO_EV2_BPOS, 1);
+        req_bitmap_op(DO_PUMP3_BPOS, 1);
+    }
+    else
+    {
+        j25DrinkTankLoopCount = 0;
+    }
+}
+
+void j25DrinkTankInject(void)
+{
+    uint8_t waterLevel3                       = getFloatBall3();
+    uint8_t waterLevel2                       = getFloatBall2();
+    static rt_uint8_t j25DrinkTankInjectState = 0;
+    if (j25DrinkTankInjectState)
+    {
+        if (waterLevel3 & FLOATBALLH)
+        {
+            j25DrinkTankInjectState = 0;
+        }
+        else
+        {
+            if (waterLevel2 & FLOATBALLH)
+            {
+                req_bitmap_op(DO_IN1OUT2EV1_BPOS, 0);
+                l_sys.auxiliaryBoardDO &= ~AUXILIARYDO_EV3;
+                req_bitmap_op(DO_EV1_BPOS, 1);
+                req_bitmap_op(DO_PUMP3_BPOS, 1);
+            }
+            if (!(waterLevel2 & FLOATBALLL))
+            {
+                req_bitmap_op(DO_IN1OUT2EV1_BPOS, 1);
+                l_sys.auxiliaryBoardDO |= AUXILIARYDO_EV3;
+                req_bitmap_op(DO_EV1_BPOS, 0);
+                req_bitmap_op(DO_PUMP3_BPOS, 0);
+            }
+        }
+    }
+}
+
+void j25TransformChamberStateSet(ChamberState state)
 {
     l_sys.transformChamberState = state;
 }
 
-void transformChamber(void)
+void j25TransformChamber(void)
 {
     static uint16_t transformChamberEmptyCount = 0;
     switch (l_sys.transformChamberState)
@@ -1761,7 +1661,7 @@ void transformChamber(void)
     }
 }
 
-void compressorWork(FunctionalState state)
+void j25CompressorWork(FunctionalState state)
 {
     if (state)
     {
@@ -1776,101 +1676,76 @@ void compressorWork(FunctionalState state)
         l_sys.Comp_Close[1] |= FC_WL;
     }
 }
-void waterCollectStateSet(CollectState state)
+
+void j25AutomaticClean(void)
 {
-    l_sys.waterCollectState = state;
-}
-void waterCollect(void)
-{
-    static uint16_t collectHalfCounter = 0;
-    uint8_t waterLevel2                = getFloatBall2();
-    req_exe_log("waterLevel2:%d", waterLevel2);
-    switch (l_sys.waterCollectState)
+    static rt_uint32_t automaticCleanCount   = 0;
+    static rt_uint8_t j25AutomaticCleanState = 0;
+    if (automaticCleanCount < 1209600)
     {
-        case COLLECTIDEL:
-            req_bitmap_op(DO_EV1_BPOS, 0);
-            req_bitmap_op(DO_PUMP3_BPOS, 0);
-            collectHalfCounter = 0;
-            break;
-        case COLLECTHALF:
-            if (waterLevel2 & FLOATBALLL)
-            {
-                collectHalfCounter = 0;
-                req_bitmap_op(DO_EV1_BPOS, 1);
-                req_bitmap_op(DO_PUMP3_BPOS, 1);
-            }
-            else
-            {
-                if (collectHalfCounter < COUNT3S)
-                {
-                    collectHalfCounter++;
-                    req_bitmap_op(DO_EV1_BPOS, 1);
-                    req_bitmap_op(DO_PUMP3_BPOS, 1);
-                }
-                else
-                {
-                    req_bitmap_op(DO_EV1_BPOS, 0);
-                    req_bitmap_op(DO_PUMP3_BPOS, 0);
-                    l_sys.waterCollectState = COLLECTIDEL;
-                }
-            }
-            break;
-        case COLLECTFULL:
-            collectHalfCounter = 0;
-            if (waterLevel2 & FLOATBALLH)
-            {
-                req_bitmap_op(DO_EV1_BPOS, 1);
-                req_bitmap_op(DO_PUMP3_BPOS, 1);
-            }
-            if ((waterLevel2 & FLOATBALLL) == 0)
-            {
-                req_bitmap_op(DO_EV1_BPOS, 0);
-                req_bitmap_op(DO_PUMP3_BPOS, 0);
-            }
-            break;
-        default:
-            break;
+        automaticCleanCount++;
+    }
+    else
+    {
+        automaticCleanCount    = 0;
+        j25AutomaticCleanState = 1;
+    }
+    if (j25AutomaticCleanState == 1)
+    {
+        transformChamberStateSet(TRANSCHAMBEREMPTY);
+        waterCollectStateSet(COLLECTHALF);
+        j25DrinkTankEmptyState(ENABLE);
+        j25AutomaticCleanState = 2;
+    }
+    if (j25AutomaticCleanState == 2)
+    {
+        rt_uint8_t waterlevel1 = getFloatBall1();
+        if (waterlevel1 & FLOATBALLH)
+        {
+            j25AutomaticCleanState = 3;
+        }
+        else
+        {
+            transformChamberStateSet(TRANSCHAMBERINJECT);
+        }
+    }
+    if (j25AutomaticCleanState == 3)
+    {
+        transformChamberStateSet(TRANSCHAMBERIDEL);
     }
 }
 
-void automaticClean(void)
-{
-    static uint16_t automaticCleanCount = 0;
-    if (automaticCleanCount)
-        transformChamberStateSet(TRANSCHAMBEREMPTY);
-    waterCollectStateSet(COLLECTHALF);
-}
-
-void lifeWaterOut(void)
+void j25LifeWaterOut(void)
 {
     if ((getFloatBall3() & FLOATBALLL) && (l_sys.auxiliaryBoardDI & AUXILIARYDI_EVFAUCET))
     {
-        l_sys.auxiliaryBoardDO |= (AUXILIARYDO_PUMP1 | AUXILIARYDO_EV5);
+        l_sys.auxiliaryBoardDO |= AUXILIARYDO_PUMP1;
+        l_sys.auxiliaryBoardDO |= AUXILIARYDO_EV5;
     }
     else
     {
-        l_sys.auxiliaryBoardDO &= ~(AUXILIARYDO_PUMP1 | AUXILIARYDO_EV5);
+        l_sys.auxiliaryBoardDO &= ~AUXILIARYDO_PUMP1;
+        l_sys.auxiliaryBoardDO &= ~AUXILIARYDO_EV5;
     }
 }
-void pureWaterOut(void)
+void j25PureWaterOut(void)
 {
-    static uint8_t pureWaterOutState  = 0;
     static uint16_t pureWaterOutCount = 0;
     uint8_t pureWaterKey              = 1;
     static uint16_t T8                = 20;
-    if (pureWaterKey)
+    if (l_sys.auxiliaryBoardDI & AUXILIARYDI_PUREKEY)
     {
-        pureWaterOutState = 1;
+        l_sys.pureWaterOutState = 1;
     }
     else
     {
-        pureWaterOutState = 0;
+        l_sys.pureWaterOutState = 0;
     }
 
-    if (pureWaterOutState)
+    if (l_sys.pureWaterOutState)
     {
         req_bitmap_op(DO_EV2_BPOS, 1);
-        req_bitmap_op(DO_PUMP3_BPOS, 1);
+        PUMP3OutPut |= PUMP3PUREOUT;
         if (pureWaterOutCount > T8)
         {
             req_bitmap_op(DO_IN1OUT2EV2_BPOS, 1);
@@ -1884,7 +1759,7 @@ void pureWaterOut(void)
     {
         pureWaterOutCount = 0;
         req_bitmap_op(DO_EV2_BPOS, 0);
-        req_bitmap_op(DO_PUMP3_BPOS, 0);
+        PUMP3OutPut &= ~PUMP3PUREOUT;
         req_bitmap_op(DO_IN1OUT2EV2_BPOS, 0);
     }
 }
@@ -1917,7 +1792,7 @@ void pureWaterOut(void)
 //     }
 // }
 
-void waterMakeLogic(void)
+void j25WaterMakeLogic(void)
 {
     static uint8_t waterMakeState  = 0;
     static uint16_t waterMakeCount = 0;
@@ -1966,7 +1841,6 @@ void waterMakeLogic(void)
         }
     }
 }
-
 //总体需求执行逻辑
 void req_execution(int16_t target_req_temp, int16_t target_req_hum)
 {
@@ -1987,7 +1861,11 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
 
     waterMakeLogic();
 
-    // waterCollect();
+    waterCollect();
+
     pureWaterOut();
+
     transformChamber();
+
+    j25LifeWaterOut();
 }

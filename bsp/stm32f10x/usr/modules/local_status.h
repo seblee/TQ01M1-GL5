@@ -164,13 +164,15 @@ typedef struct
     uint8_t u8RSInteral_Neterr;   //网络异常
     uint8_t u8CloseDelay;         //关闭延迟
     uint16_t u16UV_Delay;         //关闭延迟
-    uint32_t u32WaterFlow;        //出水流量
+    rt_uint32_t u32WaterFlow;     //出水流量
     uint8_t u8Storage_Status;     //贮存状态
     uint8_t u8Storage_Fsm;        //贮存状态机
     uint8_t u8ExitFill;           //注水中
     uint16_t u16Fill_Delay[3];    //注水延迟
     uint8_t waterCollectState;
     uint8_t transformChamberState;
+    uint8_t pureWaterOutState;
+    uint8_t j25DrinkTankEmptyState;
     uint16_t auxiliaryBoardDO;
     uint16_t auxiliaryBoardDI;
     uint16_t auxiliaryBoardAI;

@@ -125,7 +125,9 @@ enum
     FILL_ML   = 2,  //制冷水位,中水位
     FILL_M    = 3,  //满水
 };
-#define COUNT3S 6
+#define COUNT3S 6u
+#define COUNT3H 21600u
+#define COUNT20M 2400u
 //水位
 enum
 {
@@ -150,15 +152,16 @@ typedef enum
 } ChamberState;
 
 #define AUXILIARYDOZERO (uint16_t)0x0000
-#define AUXILIARYDO_IN1OUT2EV3 (uint16_t)0x0001
-#define AUXILIARYDO_EV3 (uint16_t)0x0002
-#define AUXILIARYDO_EV4 (uint16_t)0x0004
-#define AUXILIARYDO_EV5 (uint16_t)0x0008
-#define AUXILIARYDO_UV (uint16_t)0x0010
-#define AUXILIARYDO_PUMP1 (uint16_t)0x0020
-#define AUXILIARYDO_PUMP2 (uint16_t)0x0040
+#define AUXILIARYDO_IN1OUT2EV3 (uint16_t)(1 << 8)
+#define AUXILIARYDO_EV3 (uint16_t)(1 << 9)
+#define AUXILIARYDO_EV4 (uint16_t)(1 << 10)
+#define AUXILIARYDO_EV5 (uint16_t)(1 << 11)
+#define AUXILIARYDO_UV (uint16_t)(1 << 12)
+#define AUXILIARYDO_PUMP1 (uint16_t)(1 << 13)
+#define AUXILIARYDO_PUMP2 (uint16_t)(1 << 14)
 
 #define AUXILIARYDI_EVFAUCET (uint16_t)0x0001
+#define AUXILIARYDI_PUREKEY (uint16_t)0x0002
 
 //流量脉冲
 enum

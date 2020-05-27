@@ -156,7 +156,6 @@ typedef struct
     uint16_t TH_Check_Delay;      //温湿度检测间隔
     uint8_t Set_Systime_Flag;     //设置系统时间标识
     uint8_t Set_Systime_Delay;    //设置系统等待延时
-    uint8_t OutWater_Key;         //按键出水
     uint16_t OutWater_Delay[3];   //按键出水延时
     uint8_t ChildLock_Key;        //童锁
     uint8_t ChildLock_Cnt[2];     //童锁计数器
@@ -169,13 +168,14 @@ typedef struct
     uint8_t u8Storage_Fsm;        //贮存状态机
     uint8_t u8ExitFill;           //注水中
     uint16_t u16Fill_Delay[3];    //注水延迟
-    uint8_t waterCollectState;
-    uint8_t transformChamberState;
-    uint8_t pureWaterOutState;
+    uint8_t j25WaterCollectState;
+    uint8_t j25TransformChamberState;
+    uint8_t j25PureWaterOutState;
     uint8_t j25DrinkTankEmptyState;
-    uint16_t auxiliaryBoardDO;
-    uint16_t auxiliaryBoardDI;
-    uint16_t auxiliaryBoardAI;
+    uint8_t j25DrinkTankInjectState;
+    uint16_t j25AuxiliaryBoardDO;
+    uint16_t j25AuxiliaryBoardDI;
+    uint16_t j25AuxiliaryBoardAI;
 } local_reg_st;
 
 enum

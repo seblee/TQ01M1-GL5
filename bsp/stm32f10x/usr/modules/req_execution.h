@@ -126,8 +126,12 @@ enum
     FILL_M    = 3,  //满水
 };
 #define COUNT3S 6u
-#define COUNT3H 21600u
+#define COUNT9M 1080u
 #define COUNT20M 2400u
+#define COUNT30M 3600u
+#define COUNT3H 21600u
+#define COUNT7D 1209600u
+#define COUNT30D 5184000u
 //水位
 enum
 {
@@ -156,7 +160,7 @@ typedef enum
 #define AUXILIARYDO_EV3 (uint16_t)(1 << 9)
 #define AUXILIARYDO_EV4 (uint16_t)(1 << 10)
 #define AUXILIARYDO_EV5 (uint16_t)(1 << 11)
-#define AUXILIARYDO_UV (uint16_t)(1 << 12)
+#define AUXILIARYDO_SRCUV (uint16_t)(1 << 12)
 #define AUXILIARYDO_PUMP1 (uint16_t)(1 << 13)
 #define AUXILIARYDO_PUMP2 (uint16_t)(1 << 14)
 

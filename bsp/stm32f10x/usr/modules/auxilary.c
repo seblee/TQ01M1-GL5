@@ -54,8 +54,8 @@ static void recOperation(rt_uint8_t *serialDataIn)
         case CMD_REG_DOWN:
             break;
         case CMD_AUX_DIAI:
-            l_sys.auxiliaryBoardDI = (*(serialDataIn + 4) << 8) | *(serialDataIn + 5);
-            l_sys.auxiliaryBoardAI = (*(serialDataIn + 6) << 8) | *(serialDataIn + 7);
+            l_sys.j25AuxiliaryBoardDI = (*(serialDataIn + 4) << 8) | *(serialDataIn + 5);
+            l_sys.j25AuxiliaryBoardAI = (*(serialDataIn + 6) << 8) | *(serialDataIn + 7);
             break;
         case CMD_AUX_DO:
             break;
@@ -63,7 +63,7 @@ static void recOperation(rt_uint8_t *serialDataIn)
             break;
     }
 }
-rt_uint8_t getCheckSum(rt_uint8_t *data)
+static rt_uint8_t getCheckSum(rt_uint8_t *data)
 {
     rt_uint8_t checkSum = 0;
     rt_uint8_t i;
@@ -147,12 +147,11 @@ static rt_err_t uartByteReceived(rt_device_t dev, rt_size_t size)
 static rt_uint8_t auxilaryDataRepare(rt_uint8_t *buff)
 {
     rt_uint8_t len = 0;
-    *buff          = 0xff;
     rt_memcpy(buff, protocolHeader, 2);
     *(buff + 2) = CMD_AUX_DO;
     *(buff + 3) = 2;
-    *(buff + 4) = l_sys.auxiliaryBoardDO >> 8;
-    *(buff + 5) = l_sys.auxiliaryBoardDO & 0xff;
+    *(buff + 4) = l_sys.j25AuxiliaryBoardDO >> 8;
+    *(buff + 5) = l_sys.j25AuxiliaryBoardDO & 0xff;
     *(buff + 6) = getCheckSum(buff);
     len         = *(buff + 3) + 5;
     return len;

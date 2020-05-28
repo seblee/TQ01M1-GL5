@@ -66,5 +66,38 @@ enum
     STATE_LED_FLASH_1HZ,
     STATE_LED_FLASH_0_5HZ,
 };
+extern _TKS_FLAGA_type keyState[4];
+extern volatile _TKS_FLAGA_type keyTrg[4];
+
+#define KEY1 keyState[0].bits.b0
+#define KEY2 keyState[0].bits.b1
+#define KEY3 keyState[0].bits.b2
+#define KEY4 keyState[0].bits.b3
+
+#define KEY1Restain keyState[2].bits.b0
+#define KEY2Restain keyState[2].bits.b1
+#define KEY3Restain keyState[2].bits.b2
+#define KEY4Restain keyState[2].bits.b3
+
+#define KEY1Trg keyTrg[0].bits.b0
+#define KEY2Trg keyTrg[0].bits.b1
+#define KEY3Trg keyTrg[0].bits.b2
+#define KEY4Trg keyTrg[0].bits.b3
+
+#define KEY1RestainTrg keyTrg[2].bits.b0
+#define KEY2RestainTrg keyTrg[2].bits.b1
+#define KEY3RestainTrg keyTrg[2].bits.b2
+#define KEY4RestainTrg keyTrg[2].bits.b3
+
+extern _USR_FLAGA_type ledState[5];
+#define led1State ledState[0].s4bits.s0
+#define led2State ledState[0].s4bits.s1
+#define led3State ledState[1].s4bits.s0
+#define led4State ledState[1].s4bits.s1
+#define led5State ledState[2].s4bits.s0
+#define led6State ledState[2].s4bits.s1
+#define led7State ledState[3].s4bits.s0
+#define led8State ledState[3].s4bits.s1
+#define led9State ledState[4].s4bits.s0
 
 #endif

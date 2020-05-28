@@ -36,30 +36,9 @@ static unsigned char rxBuff[RT_SERIAL_RB_BUFSZ + 1] = {0};
 extern const rt_uint8_t protocolHeader[2];
 static rt_uint8_t rxCount = 0;
 /**********************key led*********************************************************/
-_TKS_FLAGA_type keyState[2];
-volatile _TKS_FLAGA_type keyTrg[2];
-
-#define KEY1 keyTrg[0].bits.b2
-#define KEY2 keyTrg[0].bits.b3
-#define KEY3 keyTrg[0].bits.b1
-#define KEY4 keyTrg[0].bits.b0
-
-#define KEY1Restain keyTrg[1].bits.b2
-#define KEY2Restain keyTrg[1].bits.b3
-#define KEY3Restain keyTrg[1].bits.b1
-#define KEY4Restain keyTrg[1].bits.b0
-
+_TKS_FLAGA_type keyState[4];
+volatile _TKS_FLAGA_type keyTrg[4];
 _USR_FLAGA_type ledState[5];
-#define led1State ledState[0].s4bits.s0
-#define led2State ledState[0].s4bits.s1
-#define led3State ledState[1].s4bits.s0
-#define led4State ledState[1].s4bits.s1
-#define led5State ledState[2].s4bits.s0
-#define led6State ledState[2].s4bits.s1
-#define led7State ledState[3].s4bits.s0
-#define led8State ledState[3].s4bits.s1
-#define led9State ledState[4].s4bits.s0
-
 unsigned char beepCount = 0;
 
 /*************************function******************************************************/
@@ -82,43 +61,48 @@ static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
 }
 static void keyRecOperation(_TKS_FLAGA_type *keyState)
 {
-    static rt_uint8_t k_count[2] = {0};
-    keyTrg[0].byte               = keyState->byte & (keyState->byte ^ k_count[0]);
-    k_count[0]                   = keyState->byte;
-    keyTrg[1].byte               = (keyState + 1)->byte & ((keyState + 1)->byte ^ k_count[1]);
-    k_count[1]                   = (keyState + 1)->byte;
-    if (KEY1)
+    static rt_uint8_t k_count[4] = {0};
+
+    for (rt_uint8_t i = 0; i < rxBuff[3]; i++)
+    {
+        (keyState + i)->byte = rxBuff[3 + i];
+
+        keyTrg[i].byte = (keyState + i)->byte & ((keyState + i)->byte ^ k_count[i]);
+        k_count[i]     = (keyState + i)->byte;
+    }
+
+    if (KEY1Trg)
     {
         rt_kprintf("key1\n");
     }
-    if (KEY2)
+    if (KEY2Trg)
     {
     }
-    if (KEY3)
+    if (KEY3Trg)
     {
         // RAM_Write_Reg(86, g_sys.config.ComPara.u16ColdWater_Mode, 1);
         rt_kprintf("key3\n");
     }
-    if (KEY4)
+    if (KEY4Trg)
     {
         rt_kprintf("key4\n");
     }
 
-    if (KEY1Restain)
+    if (KEY1RestainTrg)
     {
         // RAM_Write_Reg(EE_EXITWATER, g_sys.config.ComPara.u16ExitWater_Mode, 1);
         rt_kprintf("KEY1Restain\n");
     }
-    if (KEY2Restain)
+    if (KEY2RestainTrg)
     {
         rt_kprintf("KEY2Restain\n");
     }
-    if (KEY3Restain)
+    if (KEY3RestainTrg)
     {
         rt_kprintf("KEY3Restain\n");
     }
 
-    if (KEY4Restain)
+    if (KEY4RestainTrg)
     {
         // write_reg_map(POWER_ON_ADDR, g_sys.config.ComPara.u16Power_Mode);
         rt_kprintf("KEY4Restain\n");
@@ -136,7 +120,6 @@ static void recOperation(rt_uint8_t *serialDataIn)
         case CMD_IDEL:
             break;
         case CMD_KEY:
-
             keyRecOperation(keyState);
             break;
         case CMD_LED:
@@ -224,22 +207,13 @@ again:
 rxContinue:
     return;
 }
-/****
- *
- *
- *
- *
- **/
+
 #include "req_execution.h"
 #include "local_status.h"
 #include "global_var.h"
 extern local_reg_st l_sys;
 extern sys_reg_st g_sys;
-/**
- *
- *
- *
- **/
+
 #include "sys_status.h"
 void ledSendOperation(void)
 {
@@ -285,7 +259,6 @@ void ledSendOperation(void)
 static rt_uint8_t dataRepare(rt_uint8_t *buff)
 {
     rt_uint8_t len = 0;
-    keyRecOperation(keyState);
     ledSendOperation();
     rt_memcpy(buff, protocolHeader, 2);
     *(buff + 2) = CMD_LED;
@@ -319,7 +292,6 @@ static void serial_thread_entry(void *parameter)
             if (recOK)
             {
                 rx_length = dataRepare(txBuff);
-
                 rt_device_write(serial, 0, txBuff, rx_length);
                 recOK = 0;
             }

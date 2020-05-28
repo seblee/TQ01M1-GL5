@@ -25,7 +25,7 @@ static void sys_debug_timeout(void);
 // static void ec_fan_diff_req(void);
 // static void ec_fan_suc_temp(void);
 // extern void work_mode_manage(void);
-static void temp_hum_calc(void); 
+static void temp_hum_calc(void);
 static uint16_t Set_Systime(void);
 
 //掉电提示
@@ -56,17 +56,16 @@ void bkg_thread_entry(void *parameter)
     while (1)
     {
         led_toggle();
-         
+
         sys_comp_cooldown();
         run_time_process();
-        
+
         temp_hum_calc();
 
-      
         sys_running_mode_update();
         sys_debug_timeout();
         Set_Systime();
-        Rtc_sts_update(&g_sys);  
+        Rtc_sts_update(&g_sys);
 
         dog();
         rt_thread_delay(1000);
@@ -82,7 +81,6 @@ static void temp_hum_calc(void)
     // rt_kprintf("g_sys.status.sys_tem_hum.return_air_hum = %d\n", g_sys.status.sys_tem_hum.return_air_hum);
     // rt_kprintf("g_sys.status.sys_tem_hum.return_air_temp = %d\n", g_sys.status.sys_tem_hum.return_air_temp);
 }
- 
 
 /**
  * @brief 	system components runtime counter
@@ -202,10 +200,7 @@ static void run_time_process(void)
         }
     }
 
-    // get_local_time(&now);
-    // if ((now % FIXED_SAVETIME) == 0) //每15分钟保存一次
     u16Sec++;
-    // rt_kprintf("adc_value=%d\n", u16Sec);
     if ((u16Sec % FIXED_SAVETIME) == 0)  //每15分钟保存一次
     {
         u16Sec = 0;

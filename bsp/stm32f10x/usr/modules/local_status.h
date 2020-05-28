@@ -171,8 +171,8 @@ typedef struct
     uint8_t j25WaterCollectState;
     uint8_t j25TransformChamberState;
     uint8_t j25PureWaterOutState;
-    uint8_t j25DrinkTankEmptyState;
-    uint8_t j25DrinkTankInjectState;
+    uint8_t j25AutomaticCleanState;
+    uint8_t j25DrinkTankState;
     uint16_t j25AuxiliaryBoardDO;
     uint16_t j25AuxiliaryBoardDI;
     uint16_t j25AuxiliaryBoardAI;

@@ -56,7 +56,7 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {8, &g_sys.config.dev_mask.din_bitmap_polarity[0], 0, 0xffff, 0xBE5B, 3, 1, NULL},  // DI极性
     {9, &g_sys.config.dev_mask.din_bitmap_polarity[1], 0, 0xffff, 0x00, 3, 1, NULL},
     {10, &g_sys.config.dev_mask.ain, 0, 0xffff, 0x801F, 3, 1, NULL},
-    {11, &g_sys.config.dev_mask.din[0], 0, 0xFFFF, 0xFFFB, 3, 1, NULL},  // DI屏蔽位
+    {11, &g_sys.config.dev_mask.din[0], 0, 0xFFFF, 0xFFFF, 3, 1, NULL},  // DI屏蔽位
     {12, &g_sys.config.dev_mask.din[1], 0, 0xffff, 0x0000, 3, 1, NULL},
     {13, &g_sys.config.dev_mask.aout, 0, 0x003f, 0x0001, 3, 1, NULL},
     {14, &g_sys.config.dev_mask.mb_comp, 0, 0xFFFF, 0x01, 3, 1, NULL},

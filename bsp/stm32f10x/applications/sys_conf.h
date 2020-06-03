@@ -19,13 +19,13 @@ enum
     DO_LAMP_BPOS,        //紫外灯1,定时杀菌
     DO_WV_BPOS,          //冷煤制水阀(压机制冷)
     DO_CV_BPOS,          //冷煤制冰水阀
-    DO_IN1OUT2EV1_BPOS,  //保留
-    DO_IN1OUT2EV2_BPOS,  //出水泵//泵2
-    DO_EV1_BPOS,         // DO_HWP_BPOS,  //热水出水泵
-    DO_EV2_BPOS,         // DO_PWP_BPOS,  //净化泵//泵1
-    DO_PUREUV_BPOS,      // DO_DWP_BPOS,  //杀菌泵
-    DO_PUMP3_BPOS,       // DO_DV_BPOS,  //出水阀//阀2
-    DO_FV_BPOS,          //外接进水阀
+    DO_RSV1_BPOS,        //保留
+    DO_IN1OUT2EV1_BPOS,  //出水泵//泵2
+    DO_IN1OUT2EV2_BPOS,  // DO_HWP_BPOS,  //热水出水泵
+    DO_EV1_BPOS,         // DO_PWP_BPOS,  //热水出水泵
+    DO_EV2_BPOS,         // DO_DWP_BPOS,  //净化泵//泵1
+    DO_PUREUV_BPOS,      // DO_DV_BPOS,  //杀菌泵
+    DO_PUMP3_BPOS,       // DO_FV_BPOS,// 外接进水阀,
     DO_RSV2_BPOS,        //保留
     DO_EL1_BPOS,         //电子锁1
 

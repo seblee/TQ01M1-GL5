@@ -1191,7 +1191,6 @@ void j25TransformChamber(void)
             if (j25GetFloatBall1() & FLOATBALLL)
             {
                 EV3OutPut &= ~EV3TRANSFORM;
-                l_sys.j25AuxiliaryBoardDO &= ~EV3TRANSFORM;
                 l_sys.j25AuxiliaryBoardDO |= (AUXILIARYDO_PUMP2 | AUXILIARYDO_IN1OUT2EV3);
                 /**
                  * 一二阀3得电
@@ -1242,7 +1241,6 @@ void j25CompressorWork(FunctionalState state)
 
 void j25WaterMakeLogic(void)
 {
-    static uint8_t waterMakeState  = 0;
     static uint16_t waterMakeCount = 0;
     uint16_t T3                    = 10;
 
@@ -1252,14 +1250,14 @@ void j25WaterMakeLogic(void)
 
     if ((j25GetFloatBall3() & FLOATBALLM) == 0)  //浮球3中不满
     {
-        waterMakeState = 1;
+        l_sys.j25WaterMakeState = 1;
     }
-    req_exe_log("MakeState:%d,l_sys.j25TransformChamberState:%2d", waterMakeState, l_sys.j25TransformChamberState);
-    if (waterMakeState == 1)
+    req_exe_log("MakeState:%d,ChamberState:%2d", l_sys.j25WaterMakeState, l_sys.j25TransformChamberState);
+    if (l_sys.j25WaterMakeState == 1)
     {
         if (j25GetFloatBall3() & FLOATBALLH)  //浮球3上满
         {
-            waterMakeState = 0;
+            l_sys.j25WaterMakeState = 0;
             j25WaterCollectStateSet(COLLECTIDEL);
             j25TransformChamberStateSet(TRANSCHAMBERIDEL);
             j25CompressorWork(ENABLE);
@@ -1293,7 +1291,7 @@ void j25WaterMakeLogic(void)
             waterMakeCount++;
         }
     }
-    req_exe_log("waterMakeState out:%d", waterMakeState);
+    req_exe_log("MakeState out:%d", l_sys.j25WaterMakeState);
 }
 
 void j25AutomaticClean(void)

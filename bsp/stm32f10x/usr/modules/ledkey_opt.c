@@ -18,6 +18,9 @@
 #include "ledkey_opt.h"
 #include "local_status.h"
 #include "auxilary.h"
+#include "req_execution.h"
+#include "global_var.h"
+extern local_reg_st l_sys;
 #define SAMPLE_UART_NAME "uart3"
 /* 串口接收消息结构*/
 struct rx_msg
@@ -38,24 +41,34 @@ static rt_uint8_t rxCount = 0;
 /**********************key led*********************************************************/
 _TKS_FLAGA_type keyState[4];
 volatile _TKS_FLAGA_type keyTrg[4];
-_USR_FLAGA_type ledState[5];
-unsigned char beepCount = 0;
+_USR_FLAGA_type ledState[7];
+_BEEP_STATE beepState = {0, 0, 0};
 
 /*************************function******************************************************/
+static void receiveProtocol(void);
 
 /* 接收数据回调函数 */
 static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
 {
     struct rx_msg msg;
-    rt_err_t result;
+    rt_err_t result = RT_EOK;
+    rt_size_t rx_length;
     msg.dev  = dev;
     msg.size = size;
 
-    result = rt_mq_send(&rx_mq, &msg, sizeof(msg));
-    if (result == -RT_EFULL)
+    /* 从串口读取数据*/
+    rx_length = rt_device_read(dev, 0, rxBuff + rxCount, size);
+    rxCount += rx_length;
+    receiveProtocol();
+
+    if (recOK)
     {
-        /* 消息队列满 */
-        rt_kprintf("message queue full！\n");
+        result = rt_mq_send(&rx_mq, &msg, sizeof(msg));
+        if (result == -RT_EFULL)
+        {
+            /* 消息队列满 */
+            rt_kprintf("message queue full！\n");
+        }
     }
     return result;
 }
@@ -65,47 +78,68 @@ static void keyRecOperation(_TKS_FLAGA_type *keyState)
 
     for (rt_uint8_t i = 0; i < rxBuff[3]; i++)
     {
-        (keyState + i)->byte = rxBuff[3 + i];
+        (keyState + i)->byte = rxBuff[4 + i];
 
         keyTrg[i].byte = (keyState + i)->byte & ((keyState + i)->byte ^ k_count[i]);
         k_count[i]     = (keyState + i)->byte;
     }
-
-    if (KEY1Trg)
+    if (boilingKeyTrg)
     {
-        rt_kprintf("key1\n");
+        l_sys.j25WaterTempreture = BOILINGTEM;
     }
-    if (KEY2Trg)
+    if (normalKeyTrg)
+    {
+        l_sys.j25WaterTempreture = NORMALTEM;
+    }
+    if (teaKeyTrg)
+    {
+        l_sys.j25WaterTempreture = TEATEM;
+    }
+    if (cleanKeyTrg)
+    {
+        if (l_sys.j25AutomaticCleanState == 7)
+        {
+            l_sys.j25AutomaticCleanState = 0;
+        }
+    }
+    if (milkKeyTrg)
+    {
+        l_sys.j25WaterTempreture = MILKTEM;
+    }
+    if (chlidKeyTrg)
     {
     }
-    if (KEY3Trg)
+    if (getKeyTrg)
     {
-        // RAM_Write_Reg(86, g_sys.config.ComPara.u16ColdWater_Mode, 1);
-        rt_kprintf("key3\n");
-    }
-    if (KEY4Trg)
-    {
-        rt_kprintf("key4\n");
-    }
-
-    if (KEY1RestainTrg)
-    {
-        // RAM_Write_Reg(EE_EXITWATER, g_sys.config.ComPara.u16ExitWater_Mode, 1);
-        rt_kprintf("KEY1Restain\n");
-    }
-    if (KEY2RestainTrg)
-    {
-        rt_kprintf("KEY2Restain\n");
-    }
-    if (KEY3RestainTrg)
-    {
-        rt_kprintf("KEY3Restain\n");
     }
 
-    if (KEY4RestainTrg)
+    if (boilingKeyRestainTrg)
     {
-        // write_reg_map(POWER_ON_ADDR, g_sys.config.ComPara.u16Power_Mode);
-        rt_kprintf("KEY4Restain\n");
+    }
+
+    if (normalKeyRestainTrg)
+    {
+    }
+
+    if (teaKeyRestainTrg)
+    {
+    }
+
+    if (cleanKeyRestainTrg)
+    {
+    }
+
+    if (milkKeyRestainTrg)
+    {
+    }
+
+    if (chlidKeyRestainTrg)
+    {
+        l_sys.j25childLockState = 1;
+    }
+
+    if (getKeyRestainTrg)
+    {
     }
 }
 /***
@@ -146,7 +180,7 @@ static rt_uint8_t getCheckSum(rt_uint8_t *data)
     }
     return checkSum;
 }
-void receiveProtocol(void)
+static void receiveProtocol(void)
 {
     static rt_uint8_t rxStep = 0;
 
@@ -156,7 +190,9 @@ again:
         if (rxCount < 2)
             goto rxContinue;
         if (rt_memcmp(rxBuff, (void *)protocolHeader, 2) == 0)
+        {
             rxStep = 1;
+        }
         else
         {
             rt_memcpy(rxBuff, rxBuff + 1, rxCount - 1);
@@ -208,53 +244,74 @@ rxContinue:
     return;
 }
 
-#include "req_execution.h"
-#include "local_status.h"
-#include "global_var.h"
-extern local_reg_st l_sys;
 extern sys_reg_st g_sys;
 
 #include "sys_status.h"
 void ledSendOperation(void)
 {
-    led1State = STATE_LED_FLASH_1HZ;
+    if (l_sys.j25WaterMakeState)
+    {
+        makeWaterBlueState = STATE_LED_ON;
+    }
+    else
+    {
+        makeWaterBlueState = STATE_LED_OFF;
+    }
+    if (l_sys.j25AutomaticCleanState)
+    {
+        cleanBlueState = STATE_LED_ON;
+    }
+    else
+    {
+        cleanBlueState = STATE_LED_OFF;
+    }
+    boilingKeyState = STATE_LED_OFF;
+    normalKeyState  = STATE_LED_OFF;
+    teaKeyState     = STATE_LED_OFF;
+    milkKeyState    = STATE_LED_OFF;
+    switch (l_sys.j25WaterTempreture)
+    {
+        case BOILINGTEM:
+            boilingKeyState = STATE_LED_ON;
+            break;
+        case NORMALTEM:
+            normalKeyState = STATE_LED_ON;
+            break;
+        case TEATEM:
+            teaKeyState = STATE_LED_ON;
+            break;
+        case MILKTEM:
+            milkKeyState = STATE_LED_ON;
+            break;
+        default:
+            normalKeyState = STATE_LED_ON;
+            break;
+    }
+    if (l_sys.j25childLockState)
+    {
+        childLockState = STATE_LED_ON;
+    }
+    else
+    {
+        childLockState = STATE_LED_OFF;
+    }
+    if (l_sys.j25AutomaticCleanState == 7)
+    {
+        cleanKeyState = STATE_LED_ON;
+    }
+    else
+    {
+        cleanKeyState = STATE_LED_OFF;
+    }
 
-    led1State = STATE_LED_OFF;
+    getKeyState         = STATE_LED_OFF;
+    makeWaterGreenState = STATE_LED_OFF;
+    loopBlueState       = STATE_LED_OFF;
+    loopGreenState      = STATE_LED_OFF;
+    cleanGreenState     = STATE_LED_OFF;
+    loopRedState        = STATE_LED_OFF;
 
-    led2State = STATE_LED_OFF;
-
-    led3State = STATE_LED_FLASH_1HZ;
-
-    led4State = STATE_LED_FLASH_1HZ;
-
-    led5State = STATE_LED_ON;
-
-    led6State = STATE_LED_FLASH_2HZ;
-
-    led7State = STATE_LED_FLASH_0_5HZ;
-
-    led8State = STATE_LED_OFF;
-
-    led9State = STATE_LED_ON;
-
-    txBuff[0] = 0xa7;
-    txBuff[1] = 0xf6;
-    txBuff[2] = ledState[0].byte;
-    txBuff[3] = ledState[1].byte;
-    txBuff[4] = ledState[2].byte;
-    txBuff[5] = ledState[3].byte;
-    txBuff[6] = ledState[4].byte;
-    txBuff[7] = beepCount & 0x0f;
-    beepCount = 0;
-
-    txBuff[8] = txBuff[0];
-    txBuff[8] += txBuff[1];
-    txBuff[8] += txBuff[2];
-    txBuff[8] += txBuff[3];
-    txBuff[8] += txBuff[4];
-    txBuff[8] += txBuff[5];
-    txBuff[8] += txBuff[6];
-    txBuff[8] += txBuff[7];
+    beepState.byte = 0;
 }
 static rt_uint8_t dataRepare(rt_uint8_t *buff)
 {
@@ -262,11 +319,14 @@ static rt_uint8_t dataRepare(rt_uint8_t *buff)
     ledSendOperation();
     rt_memcpy(buff, protocolHeader, 2);
     *(buff + 2) = CMD_LED;
-    *(buff + 3) = 2;
-    *(buff + 4) = l_sys.j25AuxiliaryBoardDO >> 8;
-    *(buff + 5) = l_sys.j25AuxiliaryBoardDO & 0xff;
-    *(buff + 6) = getCheckSum(buff);
-    len         = *(buff + 3) + 5;
+    *(buff + 3) = 8;
+    *(buff + 4) = beepState.byte;
+    for (len = 0; len < (*(buff + 3) - 1); len++)
+    {
+        *(buff + 5 + len) = ledState[len].byte;
+    }
+    *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
+    len                       = *(buff + 3) + 5;
     return len;
 }
 static void serial_thread_entry(void *parameter)
@@ -284,11 +344,6 @@ static void serial_thread_entry(void *parameter)
         result = rt_mq_recv(&rx_mq, &msg, sizeof(msg), 1000);
         if (result == RT_EOK)
         {
-            /* 从串口读取数据*/
-            rx_length = rt_device_read(msg.dev, 0, rxBuff, msg.size);
-            rxCount += rx_length;
-            receiveProtocol();
-
             if (recOK)
             {
                 rx_length = dataRepare(txBuff);

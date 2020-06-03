@@ -170,9 +170,12 @@ typedef struct
     uint16_t u16Fill_Delay[3];    //注水延迟
     uint8_t j25WaterCollectState;
     uint8_t j25TransformChamberState;
+    uint8_t j25WaterMakeState;
     uint8_t j25PureWaterOutState;
     uint8_t j25AutomaticCleanState;
     uint8_t j25DrinkTankState;
+    uint8_t j25WaterTempreture;
+    uint8_t j25childLockState;
     uint16_t j25AuxiliaryBoardDO;
     uint16_t j25AuxiliaryBoardDI;
     uint16_t j25AuxiliaryBoardAI;

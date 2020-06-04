@@ -5,9 +5,9 @@
 
 //报警记录
 
-#define CRITICAL_ALARM_lEVEL 0x00 //严重告警
-#define MAJOR_ALARM_LEVEL 0x01    //一般告警
-#define MIOOR_ALARM_LEVEL 0x02    //提示告警
+#define CRITICAL_ALARM_LEVEL 0x00  //严重告警
+#define MAJOR_ALARM_LEVEL 0x01     //一般告警
+#define MIOOR_ALARM_LEVEL 0x02     //提示告警
 
 #define ALARM_FIFO_DEPTH 30
 
@@ -19,11 +19,10 @@
 #define TEMP_HUM_RECORD_LEN 4 * 60
 
 //事件记录
-#define EVE_MAX_CNT 500 //事件类记录总条数
+#define EVE_MAX_CNT 500  //事件类记录总条数
 
 #define EVENT_FIFO_DEPTH 64
 
-//yxq
 #pragma pack(1)
 
 // typedef struct
@@ -86,8 +85,8 @@ typedef enum
 
 enum
 {
-    EVENT_TYPE = 0, //操作类事件记录
-    ALARM_TYPE,     //报警事件记录
+    EVENT_TYPE = 0,  //操作类事件记录
+    ALARM_TYPE,      //报警事件记录
     TEM_HUM_TYPE,
 };
 
@@ -120,8 +119,7 @@ void chain_init(void);
 
 uint8_t node_append(uint16_t alarm_id, uint16_t alarm_value);
 
-uint8_t node_delete(uint16_t alarm_id);
-//test_shell
+uint8_t node_delete(uint16_t alarm_id);  // test_shell
 
 uint8_t get_alarm_status(uint8_t *status_data, uint16_t start_num, uint8_t len);
 
@@ -132,4 +130,4 @@ uint8_t clear_tem_hum_log(void);
 uint8_t get_tem_hum_log(uint8_t *log_data, uint16_t block);
 uint8_t COM_SINGLE_eMBRegHoldingCB(uint16_t usAddress, uint16_t usValue);
 
-#endif //__ALARM_ACL_H__
+#endif  //__ALARM_ACL_H__

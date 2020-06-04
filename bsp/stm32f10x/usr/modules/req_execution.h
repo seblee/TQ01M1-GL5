@@ -146,6 +146,9 @@ void req_bitmap_op(uint8_t component_bpos, uint8_t action);
 void Close_DIS_PWR(uint8_t u8Type);
 void UV_req_exe(uint8_t u8Type);
 uint8_t Sys_Get_Storage_Signal(void);
+uint8_t j25GetFloatBall1(void);
+uint8_t j25GetFloatBall2(void);
+uint8_t j25GetFloatBall3(void);
 
 #define hotWaterKey KEY1
 

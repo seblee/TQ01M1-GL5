@@ -520,7 +520,7 @@ static void calc_alrarm_cnt(void)
         {
             alarm_id = p_node2->alarm_id;
             alarm_id = alarm_id >> 8;
-            if ((alarm_id & 0x03) == CRITICAL_ALARM_lEVEL)
+            if ((alarm_id & 0x03) == CRITICAL_ALARM_LEVEL)
             {
                 critical_cnt++;
             }
@@ -536,8 +536,7 @@ static void calc_alrarm_cnt(void)
         }
     }
 
-   
-    g_sys.status.alarm_status_cnt.total_cnt     = critical_cnt + major_cnt + mioor_cnt;
+       g_sys.status.alarm_status_cnt.total_cnt     = critical_cnt + major_cnt + mioor_cnt;
     g_sys.status.alarm_status_cnt.mioor_cnt     = mioor_cnt;
     g_sys.status.alarm_status_cnt.pwr_off_alarm = calc_pwr_off();
     if (g_sys.status.alarm_status_cnt.total_cnt > 0)

@@ -135,7 +135,14 @@ static void keyRecOperation(_TKS_FLAGA_type *keyState)
 
     if (chlidKeyRestainTrg)
     {
-        l_sys.j25childLockState = 1;
+        if (l_sys.j25ChildLockState == 0)
+        {
+            l_sys.j25ChildLockState += 10;
+        }
+        else
+        {
+            l_sys.j25ChildLockState = 0;
+        }
     }
 
     if (getKeyRestainTrg)
@@ -287,7 +294,7 @@ void ledSendOperation(void)
             normalKeyState = STATE_LED_ON;
             break;
     }
-    if (l_sys.j25childLockState)
+    if (l_sys.j25ChildLockState)
     {
         childLockState = STATE_LED_ON;
     }

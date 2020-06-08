@@ -175,7 +175,8 @@ typedef struct
     uint8_t j25AutomaticCleanState;
     uint8_t j25DrinkTankState;
     uint8_t j25WaterTempreture;
-    uint8_t j25childLockState;
+    uint8_t j25ChildLockState;
+    uint16_t j25WaterCollectTime;  //净化泵打开时间
     uint16_t j25AuxiliaryBoardDO;
     uint16_t j25AuxiliaryBoardDI;
     uint16_t j25AuxiliaryBoardAI;

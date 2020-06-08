@@ -890,14 +890,13 @@ uint8_t UART_Send(uint8_t *u8Buf, uint8_t u8Len)
 }
 
 //串口发送数据
-uint8_t Heat_Send(uint8_t u8Type, uint8_t u8OC, uint16_t u16WL)
+uint8_t Heat_Send(uint8_t u8Type, uint8_t u8OC, uint8_t u8Temp, uint16_t u16WL)
 {
     extern sys_reg_st g_sys;
     uint8_t u8SendBuf[HEATWRITE_NUM + 2] = {0};
     uint8_t u8Head                       = 0xAA;
     uint8_t u8Addr                       = 0x01;
     uint16_t u16Sum                      = 0x00;
-    uint8_t u8Temp                       = 0;
     uint8_t i;
     if (g_sys.config.ComPara.u16Heater_PM25 == PM25_ZP01)
     {
@@ -908,44 +907,10 @@ uint8_t Heat_Send(uint8_t u8Type, uint8_t u8OC, uint16_t u16WL)
         if (u8Type == HEAT_READPARA)
         {
             u8SendBuf[0] = 0xA5;
-            //						rt_kprintf("u8SendBuf[0]=%x\n", u8SendBuf[0]);
             return UART_Send(&u8SendBuf[0], 1);
         }
         else
         {
-            //热水温度
-            //						switch(g_sys.config.ComPara.u16HotWater_Temp)
-            //						{
-            //							case 0x00:
-            //									u8Temp =25;//常温
-            //									break;
-            //							case 0x01:
-            //									u8Temp =45;//45℃
-            //									break;
-            //							case 0x02:
-            //									u8Temp =65;//65℃
-            //									break;
-            //							case 0x03:
-            //									u8Temp =80;//80℃
-            //									break;
-            ////							case 0x03:
-            ////									u8Temp =85;//85℃
-            ////									break;
-            //							case 0x04:
-            //									u8Temp =100;//100℃
-            //									break;
-            //							default:
-            //									u8Temp =65;//65℃
-            //									break;
-            //						}
-            u8Temp = (int8_t)g_sys.config.ComPara.u16HotWater_Temp;
-            u8Temp = u8Temp + (int8_t)g_sys.config.ComPara.u16HotWater_Cali;
-
-            if (u8Temp >= 100)
-            {
-                u8Temp = 100;
-            }
-
             u8SendBuf[0] = u8Head;
             u8SendBuf[1] = u8Addr;
             u8SendBuf[2] = u8OC;
@@ -958,37 +923,12 @@ uint8_t Heat_Send(uint8_t u8Type, uint8_t u8OC, uint16_t u16WL)
             }
             u8SendBuf[HEATWRITE_NUM - 1] = u16Sum >> 8;
             u8SendBuf[HEATWRITE_NUM]     = (uint8_t)u16Sum;
-            //					rt_kprintf("u8SendBuf[2]=%x,3=%x,4=%x,5=%x,6=%x,7=%x,8=%x\n", u8SendBuf[2],
-            // u8SendBuf[3], u8SendBuf[4], u8SendBuf[5],u8SendBuf[6],u8SendBuf[7],u8SendBuf[8]);
             return UART_Send(&u8SendBuf[0], HEATWRITE_NUM + 1);
         }
     }
     else if (g_sys.config.ComPara.u16Heater_PM25 == Heater_JX)
     {
         {
-            //热水温度
-            //					switch(g_sys.config.ComPara.u16HotWater_Temp)
-            //					{
-            //						case 0x00:
-            //								u8Temp =0x01;//常温
-            //								break;
-            //						case 0x01:
-            //								u8Temp =0x02;//45℃
-            //								break;
-            //						case 0x02:
-            //								u8Temp =0x04;//65℃
-            //								break;
-            //						case 0x03:
-            //								u8Temp =0x08;//85℃
-            //								break;
-            //						case 0x04:
-            //								u8Temp =0x10;//100℃
-            //								break;
-            //						default:
-            //								u8Temp =0x02;//65℃
-            //								break;
-            //					}
-            u8Temp       = (int8_t)g_sys.config.ComPara.u16HotWater_Temp;
             u8SendBuf[0] = 0x5A;
             u8SendBuf[1] = 0xA5;
             u8SendBuf[2] = u8Temp;
@@ -1002,10 +942,7 @@ uint8_t Heat_Send(uint8_t u8Type, uint8_t u8OC, uint16_t u16WL)
             {
                 u16Sum += u8SendBuf[i];
             }
-            //					u8SendBuf[JX_HEATWRITE_NUM - 1] = u16Sum >> 8;
             u8SendBuf[JX_HEATWRITE_NUM - 1] = (uint8_t)u16Sum;
-            //					rt_kprintf("u8SendBuf[2]=%x,3=%x,4=%x,5=%x,6=%x,7=%x,8=%x\n", u8SendBuf[2],
-            // u8SendBuf[3], u8SendBuf[4], u8SendBuf[5],u8SendBuf[6],u8SendBuf[7],u8SendBuf[8]);
             return UART_Send(&u8SendBuf[0], JX_HEATWRITE_NUM);
         }
     }

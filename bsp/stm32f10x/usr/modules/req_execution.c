@@ -25,6 +25,7 @@
 #endif /* ! CONFIG_DEBUG */
 
 extern local_reg_st l_sys;
+extern sys_reg_st g_sys;
 
 /*******DO State*********/
 static rt_uint8_t PUMP1OutPut = 0;
@@ -140,8 +141,6 @@ void req_bitmap_op(uint8_t component_bpos, uint8_t action)
 //需求模拟输出操作函数
 static void req_ao_op(uint8_t component_bpos, int16_t value)
 {
-    extern sys_reg_st g_sys;
-
     if ((g_sys.config.ComPara.u16Manual_Test_En == 0) && (g_sys.config.ComPara.u16Test_Mode_Type == 0))
     {  // normal mode
         switch (component_bpos)
@@ -178,7 +177,6 @@ static void req_ao_op(uint8_t component_bpos, int16_t value)
 //模拟输出跟踪函数，向设置目标，按照步长参数进行变化；
 static int16_t analog_step_follower(int16_t target, uint16_t dev_type)
 {
-    extern sys_reg_st g_sys;
     uint16_t current_output;
     int16_t ret_val;
     int16_t delta;
@@ -255,8 +253,6 @@ static void Fan_Fsm_Out(uint8_t Fan_Gear)
 //风机状态机执行函数
 static void fan_fsm_exe(uint8_t fan_signal)
 {
-    extern sys_reg_st g_sys;
-
     //		rt_kprintf("FAN_FSM_STATE = %d,fan_signal = %d\n",l_sys.l_fsm_state[FAN_FSM_STATE],fan_signal);
     if (get_alarm_bitmap(ACL_E7))  //风机告警
     {
@@ -382,8 +378,6 @@ static void fan_fsm_exe(uint8_t fan_signal)
 #define EC_FAN_NOLOAD_DELAY 20
 static void ec_fan_output(int16_t req_temp, int16_t req_hum, uint8_t fan_sig)
 {
-    extern sys_reg_st g_sys;
-
     uint16_t status_sense;
     uint16_t require;
     uint16_t fan_mode;
@@ -455,8 +449,6 @@ static void ec_fan_output(int16_t req_temp, int16_t req_hum, uint8_t fan_sig)
 //风机状态机信号产生电路
 static uint8_t fan_signal_gen(void)
 {
-    extern sys_reg_st g_sys;
-
     uint8_t fan_signal;
 
     fan_signal = 0;
@@ -496,8 +488,6 @@ void fan_req_exe(int16_t target_req_temp, int16_t target_req_hum)
 
 static uint16_t compressor_signal_gen(int16_t req_temp, int16_t req_hum, uint8_t *comp1_sig, uint8_t *comp2_sig)
 {
-    extern sys_reg_st g_sys;
-
     uint8_t comp1_alarm_flag, comp2_alarm_flag;
     uint16_t compressor_count;
 
@@ -650,8 +640,6 @@ void compressor_alarm_signal_gen(uint8_t *comp1_sig, uint8_t *comp2_sig)
 //压缩机状态机函数
 static void compressor_fsm(uint8_t compressor_id, uint8_t signal)
 {
-    extern sys_reg_st g_sys;
-
     uint16_t compress_fsm_state;
 
     uint8_t l_fsm_state_id;
@@ -833,7 +821,6 @@ enum
 
 uint8_t Sys_Get_Storage_Signal(void)
 {
-    extern sys_reg_st g_sys;
     uint8_t ret;
 
     if (g_sys.config.ComPara.u16Storage == 1)
@@ -850,8 +837,6 @@ uint8_t Sys_Get_Storage_Signal(void)
 //显示器控制
 uint8_t Close_DIS_Enable(void)
 {
-    extern sys_reg_st g_sys;
-
     //禁止重启
     if ((g_sys.config.Platform.Restart_Enable & 0x8000) && (sys_get_di_sts(DI_HI_PRESS2_BPOS)))
     {
@@ -866,8 +851,6 @@ uint8_t Close_DIS_Enable(void)
 //显示器控制
 void Restart_DIS_exe(void)
 {
-    extern sys_reg_st g_sys;
-
     static uint8_t u8CloseTime[2]  = {0};
     static uint16_t u16NeterrDelay = 0;
     static uint32_t u32RSInteral   = 0;
@@ -1022,11 +1005,17 @@ void j25WaterCollect(void)
     switch (l_sys.j25WaterCollectState)
     {
         case COLLECTIDEL:
+
+            l_sys.j25WaterCollectTime = 0;
             EV1OutPut &= ~EV1COLLECT;
             PUMP3OutPut &= ~PUMP3COLLECT;
             collectHalfCounter = 0;
             break;
         case COLLECTHALF:
+            if ((l_sys.j25WaterCollectTime < 0xffff) && (waterLevel2 & FLOATBALLH))
+            {
+                l_sys.j25WaterCollectTime++;
+            }
             if (waterLevel2 & FLOATBALLL)
             {
                 collectHalfCounter = 0;
@@ -1050,6 +1039,10 @@ void j25WaterCollect(void)
             }
             break;
         case COLLECTFULL:
+            if ((l_sys.j25WaterCollectTime < 0xffff) && (waterLevel2 & FLOATBALLH))
+            {
+                l_sys.j25WaterCollectTime++;
+            }
             collectHalfCounter = 0;
             if (waterLevel2 & FLOATBALLH)
             {
@@ -1160,7 +1153,26 @@ void j25TransformChamberStateSet(ChamberState_t state)
 
 void j25TransformChamber(void)
 {
-    static uint16_t transformChamberEmptyCount = 0;
+    static uint16_t transformChamberEmptyCount       = 0;
+    static rt_uint32_t transformChamberPeriodicCount = 0;
+    rt_uint32_t T5                                   = COUNT24H;
+
+    /**********
+     * Periodic Transform Chamber Empty
+     */
+    if (transformChamberPeriodicCount < T5)
+    {
+        transformChamberPeriodicCount++;
+    }
+    else
+    {
+        if (l_sys.j25TransformChamberState == TRANSCHAMBERIDEL)
+        {
+            transformChamberPeriodicCount  = 0;
+            l_sys.j25TransformChamberState = TRANSCHAMBEREMPTY;
+        }
+    }
+
     switch (l_sys.j25TransformChamberState)
     {
         case TRANSCHAMBERIDEL:
@@ -1242,7 +1254,7 @@ void j25CompressorWork(FunctionalState state)
 void j25WaterMakeLogic(void)
 {
     static uint16_t waterMakeCount = 0;
-    uint16_t T3                    = 10;
+    uint16_t T3                    = COUNT30M;
 
     rt_uint8_t ball1 = j25GetFloatBall1();
     rt_uint8_t ball2 = j25GetFloatBall2();
@@ -1252,7 +1264,7 @@ void j25WaterMakeLogic(void)
     {
         l_sys.j25WaterMakeState = 1;
     }
-    req_exe_log("MakeState:%d,ChamberState:%2d", l_sys.j25WaterMakeState, l_sys.j25TransformChamberState);
+
     if (l_sys.j25WaterMakeState == 1)
     {
         if (j25GetFloatBall3() & FLOATBALLH)  //浮球3上满
@@ -1291,7 +1303,6 @@ void j25WaterMakeLogic(void)
             waterMakeCount++;
         }
     }
-    req_exe_log("MakeState out:%d", l_sys.j25WaterMakeState);
 }
 
 void j25AutomaticClean(void)
@@ -1390,7 +1401,7 @@ void j25PureWaterOut(void)
 {
     static uint16_t pureWaterOutCount = 0;
     static uint16_t T8                = 20;
-    if (l_sys.j25AuxiliaryBoardDI & AUXILIARYDI_PUREKEY)
+    if ((getKeyRestain) && ((l_sys.j25WaterTempreture == NORMALTEM) || (l_sys.j25WaterTempreture == IDELTEM)))
     {
         l_sys.j25PureWaterOutState = 1;
     }
@@ -1424,10 +1435,17 @@ void j25PureWaterOut(void)
 void hotWaterOut(void)
 {
     static uint8_t hotWaterOutState = 0;
-
-    if (hotWaterKey)
+    static uint8_t u8HeatNum        = 0;
+    static uint8_t u8CloseNum       = 0;
+    uint8_t u8Temp                  = 0;
+    req_exe_log("WaterTempreture:%d,childLockState:%d", l_sys.j25WaterTempreture, l_sys.j25ChildLockState);
+    if ((getKeyRestain) &&
+        ((l_sys.j25WaterTempreture == BOILINGTEM) || (l_sys.j25WaterTempreture == TEATEM) ||
+         (l_sys.j25WaterTempreture == MILKTEM)) &&
+        (l_sys.j25ChildLockState))
     {
         hotWaterOutState = 1;
+        l_sys.j25ChildLockState++;
     }
     else
     {
@@ -1437,19 +1455,65 @@ void hotWaterOut(void)
 
     if (hotWaterOutState == 1)
     {
-        /**
-         * 即热模块
-         */
-        hotWaterOutState = 2;
+        u8CloseNum = 0;
+        //串口通信
+        if ((l_sys.OutWater_OK == HEATER_SEND) && (u8HeatNum >= 3))
+        {
+            l_sys.OutWater_OK = WATER_READ;
+            if (Heat_Send(HEAT_READPARA, 0, 0, 0))
+            {
+                g_ComStat[UART_HEAT] = SEND_Over;  //发送完成
+            }
+        }
+        else
+        {
+            if (u8HeatNum < WRITEHEAT_MAX)  //
+            {
+                u8HeatNum++;
+                l_sys.OutWater_OK = HEATER_SEND;
+                switch (l_sys.j25WaterTempreture)
+                {
+                    case IDELTEM:
+                        u8Temp = 25;  //常温
+                        break;
+                    case BOILINGTEM:
+                        u8Temp = 99;  // 开水 break;
+                    case NORMALTEM:
+                        u8Temp = 25;  //常温
+                        break;
+                    case TEATEM:
+                        u8Temp = 65;  // 65℃
+                        break;
+                    case MILKTEM:
+                        u8Temp = 45;  // 45℃
+                        break;
+                    default:
+                        u8Temp = 25;  //常温
+                        break;
+                }
+                if (Heat_Send(HEAT_WRITEPARA, OPEN_HEAT, u8Temp, 5000))
+                {
+                    l_sys.OutWater_Flag = WATER_HEAT;  //出水中
+                }
+            }
+        }
     }
     else if (hotWaterOutState == 0)
     {
-        hotWaterOutState = 2;
-        /**
-         * 即热模块
-         */
+        u8HeatNum = 0;
+        if (u8CloseNum < CLOSEHEAT_MAX)  //关闭出水
+        {
+            u8CloseNum++;
+            u8Temp = 0;
+            if (Heat_Send(HEAT_WRITEPARA, CLOSE_HEAT, u8Temp, 5000))
+            {
+            }
+        }
     }
+    if (l_sys.j25ChildLockState)
+        l_sys.j25ChildLockState--;
 }
+
 void j25UVCtrl(void)
 {
     static rt_uint8_t UVState = 0;
@@ -1477,11 +1541,13 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
 
     j25WaterCollect();
 
-    j25PureWaterOut();
-
     j25TransformChamber();
 
     j25LifeWaterOut();
+
+    j25PureWaterOut();
+
+    hotWaterOut();
 
     j25UVCtrl();
 

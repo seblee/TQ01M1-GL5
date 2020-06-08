@@ -91,15 +91,21 @@ enum
 extern _TKS_FLAGA_type keyState[4];
 extern volatile _TKS_FLAGA_type keyTrg[4];
 
+#define KEY0 keyState[1].bits.b2
 #define KEY1 keyState[0].bits.b0
-#define KEY2 keyState[0].bits.b1
+#define KEY2 keyState[1].bits.b1
 #define KEY3 keyState[0].bits.b2
-#define KEY4 keyState[0].bits.b3
+#define KEY4 keyState[1].bits.b0
+#define KEY5 keyState[1].bits.b3
+#define KEY6 keyState[0].bits.b1
 
+#define KEY0Restain keyState[3].bits.b2
 #define KEY1Restain keyState[2].bits.b0
-#define KEY2Restain keyState[2].bits.b1
+#define KEY2Restain keyState[3].bits.b1
 #define KEY3Restain keyState[2].bits.b2
-#define KEY4Restain keyState[2].bits.b3
+#define KEY4Restain keyState[3].bits.b0
+#define KEY5Restain keyState[3].bits.b3
+#define KEY6Restain keyState[2].bits.b1
 
 #define KEY0Trg keyTrg[1].bits.b2
 #define KEY1Trg keyTrg[0].bits.b0
@@ -116,6 +122,22 @@ extern volatile _TKS_FLAGA_type keyTrg[4];
 #define KEY4RestainTrg keyTrg[3].bits.b0
 #define KEY5RestainTrg keyTrg[3].bits.b3
 #define KEY6RestainTrg keyTrg[2].bits.b1
+
+#define boilingKey KEY0
+#define normalKey KEY1
+#define teaKey KEY2
+#define cleanKey KEY3
+#define milkKey KEY4
+#define chlidKey KEY5
+#define getKey KEY6
+
+#define boilingKeyRestain KEY0Restain
+#define normalKeyRestain KEY1Restain
+#define teaKeyRestain KEY2Restain
+#define cleanKeyRestain KEY3Restain
+#define milkKeyRestain KEY4Restain
+#define chlidKeyRestain KEY5Restain
+#define getKeyRestain KEY6Restain
 
 #define boilingKeyTrg KEY0Trg
 #define normalKeyTrg KEY1Trg

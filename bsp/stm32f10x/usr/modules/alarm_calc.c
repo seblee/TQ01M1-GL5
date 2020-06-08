@@ -1636,8 +1636,20 @@ static uint16_t acl26(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL3
     }
 }
 static uint16_t acl27(alarm_acl_status_st *acl_ptr)  // ACL_J25_COLLECT_TIME_OUT
-{
-    return (ALARM_ACL_CLEARED);
+{                                                    // 解除 报警
+    if (acl_clear(acl_ptr))
+    {
+        return (ALARM_ACL_CLEARED);
+    }
+
+    if (l_sys.j25WaterCollectTime >= (uint16_t)(4 * 60 * 2))  // 4 minutes
+    {
+        return (ALARM_ACL_TRIGGERED);
+    }
+    else
+    {
+        return (ALARM_ACL_CLEARED);
+    }
 }
 static uint16_t acl28(alarm_acl_status_st *acl_ptr)  // ACL_J25_UV_TIME_OUT
 {

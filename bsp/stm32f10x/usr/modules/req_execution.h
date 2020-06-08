@@ -68,6 +68,7 @@ enum
 #define COUNT20M 2400u
 #define COUNT30M 3600u
 #define COUNT3H 21600u
+#define COUNT24H 172800u
 #define COUNT7D 1209600u
 #define COUNT30D 5184000u
 //水位
@@ -110,7 +111,6 @@ typedef enum
 #define AUXILIARYDO_PUMP2 (uint16_t)(1 << 14)
 
 #define AUXILIARYDI_EVFAUCET (uint16_t)0x0001
-#define AUXILIARYDI_PUREKEY (uint16_t)0x0002
 
 //出水状态
 enum
@@ -120,6 +120,16 @@ enum
     WATER_READ,
     WATER_OUT,
 };
+
+//加热器控制
+enum
+{
+    CLOSE_HEAT = 0,
+    OPEN_HEAT,
+};
+
+#define WRITEHEAT_MAX 250
+#define CLOSEHEAT_MAX 5
 
 //定时保存时间
 #define FIXED_SAVETIME 900

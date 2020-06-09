@@ -109,7 +109,7 @@ static void keyRecOperation(_TKS_FLAGA_type *keyState)
     if (chlidKeyTrg)
     {
     }
-    if (getKeyTrg)
+    if (fetchKeyTrg)
     {
     }
 
@@ -137,15 +137,11 @@ static void keyRecOperation(_TKS_FLAGA_type *keyState)
     {
         if (l_sys.j25ChildLockState == 0)
         {
-            l_sys.j25ChildLockState += 10;
-        }
-        else
-        {
-            l_sys.j25ChildLockState = 0;
+            l_sys.j25ChildLockState = g_sys.config.ComPara.j25ChildLockTime * 2;
         }
     }
 
-    if (getKeyRestainTrg)
+    if (fetchKeyRestainTrg)
     {
     }
 }
@@ -278,6 +274,9 @@ void ledSendOperation(void)
     milkKeyState    = STATE_LED_OFF;
     switch (l_sys.j25WaterTempreture)
     {
+        case IDELTEM:
+            normalKeyState = STATE_LED_ON;
+            break;
         case BOILINGTEM:
             boilingKeyState = STATE_LED_ON;
             break;
@@ -291,7 +290,6 @@ void ledSendOperation(void)
             milkKeyState = STATE_LED_ON;
             break;
         default:
-            normalKeyState = STATE_LED_ON;
             break;
     }
     if (l_sys.j25ChildLockState)
@@ -311,7 +309,7 @@ void ledSendOperation(void)
         cleanKeyState = STATE_LED_OFF;
     }
 
-    getKeyState         = STATE_LED_OFF;
+    fetchKeyState       = STATE_LED_OFF;
     makeWaterGreenState = STATE_LED_OFF;
     loopBlueState       = STATE_LED_OFF;
     loopGreenState      = STATE_LED_OFF;

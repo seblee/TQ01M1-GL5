@@ -1068,21 +1068,25 @@ void j25DrinkTank(void)
 {
     static rt_uint32_t j25DrinkTankLoopCount    = 0;
     static rt_uint16_t j25DrinkTankEmptyCounter = 0;
-    uint8_t waterLevel2                         = j25GetFloatBall2();
-    uint8_t waterLevel3                         = j25GetFloatBall3();
+
+    uint8_t waterLevel2 = j25GetFloatBall2();
+    uint8_t waterLevel3 = j25GetFloatBall3();
+
+    rt_uint32_t T1 = g_sys.config.ComPara.j25LoopInterval * 60 * 60 * 2;
+    rt_uint32_t T2 = g_sys.config.ComPara.j25LoopTime * 60 * 2;
+
     switch (l_sys.j25DrinkTankState)
     {
         case DRINKTANKIDEL:
-            break;
         case DRINKTANKLOOP:
-            if (j25DrinkTankLoopCount < COUNT3H)
+            if (j25DrinkTankLoopCount < T1)
             {
                 j25DrinkTankLoopCount++;
                 EV2OutPut &= ~EV2DRINKTANK;
                 PUMP3OutPut &= ~PUMP3DRINKTANK;
             }
-            else if (j25DrinkTankLoopCount < (COUNT3H + COUNT20M))
-            {
+            else if (j25DrinkTankLoopCount < (T1 + T2))
+            {  // 应有浮球判断
                 j25DrinkTankLoopCount++;
                 EV2OutPut |= EV2DRINKTANK;
                 PUMP3OutPut |= PUMP3DRINKTANK;
@@ -1093,7 +1097,6 @@ void j25DrinkTank(void)
             }
             break;
         case DRINKTANKINJECT:
-
             if (waterLevel3 & FLOATBALLH)
             {
                 l_sys.j25DrinkTankState = DRINKTANKIDEL;
@@ -1401,7 +1404,7 @@ void j25PureWaterOut(void)
 {
     static uint16_t pureWaterOutCount = 0;
     static uint16_t T8                = 20;
-    if ((getKeyRestain) && ((l_sys.j25WaterTempreture == NORMALTEM) || (l_sys.j25WaterTempreture == IDELTEM)))
+    if ((fetchKeyRestain) && ((l_sys.j25WaterTempreture == NORMALTEM) || (l_sys.j25WaterTempreture == IDELTEM)))
     {
         l_sys.j25PureWaterOutState = 1;
     }
@@ -1437,15 +1440,16 @@ void hotWaterOut(void)
     static uint8_t hotWaterOutState = 0;
     static uint8_t u8HeatNum        = 0;
     static uint8_t u8CloseNum       = 0;
+    static uint8_t keyBackKeyCount  = 0;
     uint8_t u8Temp                  = 0;
     req_exe_log("WaterTempreture:%d,childLockState:%d", l_sys.j25WaterTempreture, l_sys.j25ChildLockState);
-    if ((getKeyRestain) &&
+    if ((fetchKeyRestain) &&
         ((l_sys.j25WaterTempreture == BOILINGTEM) || (l_sys.j25WaterTempreture == TEATEM) ||
          (l_sys.j25WaterTempreture == MILKTEM)) &&
         (l_sys.j25ChildLockState))
     {
-        hotWaterOutState = 1;
-        l_sys.j25ChildLockState++;
+        hotWaterOutState        = 1;
+        l_sys.j25ChildLockState = g_sys.config.ComPara.j25ChildLockTime * 2;
     }
     else
     {

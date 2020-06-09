@@ -129,7 +129,7 @@ extern volatile _TKS_FLAGA_type keyTrg[4];
 #define cleanKey KEY3
 #define milkKey KEY4
 #define chlidKey KEY5
-#define getKey KEY6
+#define fetchKey KEY6
 
 #define boilingKeyRestain KEY0Restain
 #define normalKeyRestain KEY1Restain
@@ -137,7 +137,7 @@ extern volatile _TKS_FLAGA_type keyTrg[4];
 #define cleanKeyRestain KEY3Restain
 #define milkKeyRestain KEY4Restain
 #define chlidKeyRestain KEY5Restain
-#define getKeyRestain KEY6Restain
+#define fetchKeyRestain KEY6Restain
 
 #define boilingKeyTrg KEY0Trg
 #define normalKeyTrg KEY1Trg
@@ -145,7 +145,7 @@ extern volatile _TKS_FLAGA_type keyTrg[4];
 #define cleanKeyTrg KEY3Trg
 #define milkKeyTrg KEY4Trg
 #define chlidKeyTrg KEY5Trg
-#define getKeyTrg KEY6Trg
+#define fetchKeyTrg KEY6Trg
 
 #define boilingKeyRestainTrg KEY0RestainTrg
 #define normalKeyRestainTrg KEY1RestainTrg
@@ -153,7 +153,7 @@ extern volatile _TKS_FLAGA_type keyTrg[4];
 #define cleanKeyRestainTrg KEY3RestainTrg
 #define milkKeyRestainTrg KEY4RestainTrg
 #define chlidKeyRestainTrg KEY5RestainTrg
-#define getKeyRestainTrg KEY6RestainTrg
+#define fetchKeyRestainTrg KEY6RestainTrg
 
 extern _USR_FLAGA_type ledState[7];
 #define led0State ledState[0].s4bits.s0
@@ -176,7 +176,7 @@ extern _USR_FLAGA_type ledState[7];
 #define teaKeyState led2State
 #define milkKeyState led3State
 #define normalKeyState led4State
-#define getKeyState led5State
+#define fetchKeyState led5State
 #define cleanKeyState led6State
 #define makeWaterGreenState led7State
 #define loopBlueState led8State

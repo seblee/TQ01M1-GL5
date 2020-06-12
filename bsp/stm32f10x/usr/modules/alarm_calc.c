@@ -58,7 +58,6 @@ typedef struct alarm_acl_td
     uint8_t alarm_level;
     uint16_t dev_type;
     uint16_t (*alarm_proc)(struct alarm_acl_td *str_ptr);
-
 } alarm_acl_status_st;
 
 typedef enum
@@ -72,10 +71,8 @@ typedef enum
 typedef struct
 {
     uint32_t lock_time[3];  //
-
     uint16_t last_state;
     char lock_flag;
-
 } alarm_lock_st;
 
 typedef struct
@@ -103,7 +100,6 @@ typedef struct
     {0xffffffff,0xffffffff,0xffffffff},//ACL_LO_LOCK2                  3
     {0xffffffff,0xffffffff,0xffffffff},//ACL_EXTMP_LOCK1               4
     {0xffffffff,0xffffffff,0xffffffff},//ACL_EXTMP_LOCK2               5
-
 */
     compress_cycle_alarm_st cmpress_cycle_alarm[2];
     alarm_acl_status_st alarm_sts[ACL_TOTAL_NUM];
@@ -181,7 +177,6 @@ enum
 // uint16_t alarm_tem_erro,alarm_hum_erro;
 
 static uint16_t (*acl[ACL_TOTAL_NUM])(alarm_acl_status_st *) = {
-
     //回风和送风报警(温度和湿度)
     acl00,  //		ACL_E0
     acl01,  //		ACL_E1
@@ -227,7 +222,6 @@ static uint16_t (*acl[ACL_TOTAL_NUM])(alarm_acl_status_st *) = {
 
 const uint16_t ACL_CONF[ACL_TOTAL_NUM][ALARM_ACL_MAX] = {
     //	id ,en_mask,reless_mask,DEV_type
-
     {ACL_E0, ACL_ENMODE_OTHER, ACL_ENMODE_AUTO_RESET_ALARM, CRITICAL_ALARM_LEVEL, DEV_TYPE_OTHER},   // ACL_E0
     {ACL_E1, ACL_ENMODE_OTHER, ACL_ENMODE_AUTO_RESET_ALARM, CRITICAL_ALARM_LEVEL, DEV_TYPE_OTHER},   // ACL_E1
     {ACL_E2, ACL_ENMODE_OTHER, ACL_ENMODE_AUTO_RESET_ALARM, CRITICAL_ALARM_LEVEL, DEV_TYPE_OTHER},   // ACL_E2
@@ -1136,55 +1130,51 @@ static uint16_t acl03(alarm_acl_status_st *acl_ptr)
 // ACL_E4,门打开
 static uint16_t acl04(alarm_acl_status_st *acl_ptr)
 {
-    uint8_t data = 0;
-
     // 解除 报警
     if (acl_clear(acl_ptr))
     {
         return (ALARM_ACL_CLEARED);
     }
-
-    data = sys_get_di_sts(DI_OPEN_BPOS);
-    data = io_calc(data, IO_OPEN);
-    return data;
+    return (ALARM_ACL_CLEARED);
 }
 // ACL_E5 温湿度传感器故障
 static uint16_t acl05(alarm_acl_status_st *acl_ptr)
 {
-    uint8_t req;
-    uint16_t u16mb_comp;
+    // uint8_t req;
+    // uint16_t u16mb_comp;
 
-    req = 0;
+    // req = 0;
     // 解除 报警
     if (acl_clear(acl_ptr))
     {
         g_sys.status.Alarm_COM_NTC_BIT[ALARM_COM] = 0;
         return (ALARM_ACL_CLEARED);
     }
+    return (ALARM_ACL_CLEARED);
 
-    u16mb_comp = 0x01;
+    // u16mb_comp = 0x01;
 
-    if (g_sys.status.status_remap[MBM_COM_STS_REG_NO] != u16mb_comp)
-    {
-        g_sys.status.Alarm_COM_NTC_BIT[ALARM_COM] = (g_sys.status.status_remap[MBM_COM_STS_REG_NO]) ^ (u16mb_comp);
-        req                                       = 1;
-    }
-    else
-    {
-        g_sys.status.Alarm_COM_NTC_BIT[ALARM_COM] = 0;
-        req                                       = 0;
-    }
-    acl_ptr->alram_value = g_sys.status.status_remap[MBM_COM_STS_REG_NO];
-    return (req);
+    // if (g_sys.status.status_remap[MBM_COM_STS_REG_NO] != u16mb_comp)
+    // {
+    //     g_sys.status.Alarm_COM_NTC_BIT[ALARM_COM] = (g_sys.status.status_remap[MBM_COM_STS_REG_NO]) ^ (u16mb_comp);
+    //     req                                       = 1;
+    // }
+    // else
+    // {
+    //     g_sys.status.Alarm_COM_NTC_BIT[ALARM_COM] = 0;
+    //     req                                       = 0;
+    // }
+    // acl_ptr->alram_value = g_sys.status.status_remap[MBM_COM_STS_REG_NO];
+    // return (req);
 }
 
 // ACL_E6 ,NTC
 static uint16_t acl06(alarm_acl_status_st *acl_ptr)
 {
-    int16_t min;
-    int16_t max;
-    uint8_t req;
-    int16_t meter;
+    // int16_t min;
+    // int16_t max;
+    uint8_t req = ALARM_ACL_CLEARED;
+    // int16_t meter;
 
     // 解除 报警
     if (acl_clear(acl_ptr))
@@ -1192,79 +1182,79 @@ static uint16_t acl06(alarm_acl_status_st *acl_ptr)
         return (ALARM_ACL_CLEARED);
     }
 
-    max = ACL_TEM_MAX;
-    min = ACL_TEM_MIN;
+    // max = ACL_TEM_MAX;
+    // min = ACL_TEM_MIN;
 
-    req = 0;
+    // req = 0;
 
-    // NTC
-    if ((g_sys.config.dev_mask.ain) & (0x01 << AI_NTC1))
-    {
-        meter = g_sys.status.ComSta.u16Ain[AI_NTC1];
-        if (compare_calc(meter, min, max, OUT_MIN_MAX_TYPE))
-        {
-            sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC1, 1);
-            req |= 0x01;
-        }
-        else
-        {
-            sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC1, 0);
-        }
-    }
-    if ((g_sys.config.dev_mask.ain) & (0x01 << AI_NTC2))
-    {
-        meter = g_sys.status.ComSta.u16Ain[AI_NTC2];
-        if (compare_calc(meter, min, max, OUT_MIN_MAX_TYPE))
-        {
-            sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC1, 2);
-            req |= 0x02;
-        }
-        else
-        {
-            sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC1, 0);
-        }
-    }
-    if ((g_sys.config.dev_mask.ain) & (0x01 << AI_NTC3))
-    {
-        meter = g_sys.status.ComSta.u16Ain[AI_NTC3];
-        if (compare_calc(meter, min, max, OUT_MIN_MAX_TYPE))
-        {
-            sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC3, 1);
-            req |= 0x04;
-        }
-        else
-        {
-            sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC3, 0);
-        }
-    }
+    // // NTC
+    // if ((g_sys.config.dev_mask.ain) & (0x01 << AI_NTC1))
+    // {
+    //     meter = g_sys.status.ComSta.u16Ain[AI_NTC1];
+    //     if (compare_calc(meter, min, max, OUT_MIN_MAX_TYPE))
+    //     {
+    //         sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC1, 1);
+    //         req |= 0x01;
+    //     }
+    //     else
+    //     {
+    //         sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC1, 0);
+    //     }
+    // }
+    // if ((g_sys.config.dev_mask.ain) & (0x01 << AI_NTC2))
+    // {
+    //     meter = g_sys.status.ComSta.u16Ain[AI_NTC2];
+    //     if (compare_calc(meter, min, max, OUT_MIN_MAX_TYPE))
+    //     {
+    //         sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC1, 2);
+    //         req |= 0x02;
+    //     }
+    //     else
+    //     {
+    //         sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC1, 0);
+    //     }
+    // }
+    // if ((g_sys.config.dev_mask.ain) & (0x01 << AI_NTC3))
+    // {
+    //     meter = g_sys.status.ComSta.u16Ain[AI_NTC3];
+    //     if (compare_calc(meter, min, max, OUT_MIN_MAX_TYPE))
+    //     {
+    //         sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC3, 1);
+    //         req |= 0x04;
+    //     }
+    //     else
+    //     {
+    //         sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC3, 0);
+    //     }
+    // }
 
-    if ((g_sys.config.dev_mask.ain) & (0x01 << AI_NTC4))
-    {
-        meter = g_sys.status.ComSta.u16Ain[AI_NTC4];
-        if (compare_calc(meter, min, max, OUT_MIN_MAX_TYPE))
-        {
-            sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC4, 1);
-            req |= 0x08;
-        }
-        else
-        {
-            sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC4, 0);
-        }
-    }
-    acl_ptr->alram_value = g_sys.status.status_remap[SENSOR_STS_REG_NO];
-    if (req)
-    {
-        req = 1;
-    }
-    else
-    {
-        req = 0;
-    }
-    //消除告警
-    if (g_sys.config.dev_mask.ain & 0x8000)
-    {
-        req = 0;
-    }
+    // if ((g_sys.config.dev_mask.ain) & (0x01 << AI_NTC4))
+    // {
+    //     meter = g_sys.status.ComSta.u16Ain[AI_NTC4];
+    //     if (compare_calc(meter, min, max, OUT_MIN_MAX_TYPE))
+    //     {
+    //         sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC4, 1);
+    //         req |= 0x08;
+    //     }
+    //     else
+    //     {
+    //         sys_set_remap_status(SENSOR_STS_REG_NO, AI_NTC4, 0);
+    //     }
+    // }
+    // acl_ptr->alram_value = g_sys.status.status_remap[SENSOR_STS_REG_NO];
+    // if (req)
+    // {
+    //     req = 1;
+    // }
+    // else
+    // {
+    //     req = 0;
+    // }
+    // //消除告警
+    // if (g_sys.config.dev_mask.ain & 0x8000)
+    // {
+    //     req = 0;
+    // }
     return (req);
 }
 // ACL_E7 风机未开 ACL_FAN01_OD

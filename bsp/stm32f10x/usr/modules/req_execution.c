@@ -1012,12 +1012,12 @@ void j25WaterCollect(void)
             collectHalfCounter = 0;
             break;
         case COLLECTHALF:
-            if ((l_sys.j25WaterCollectTime < 0xffff) && (waterLevel2 & FLOATBALLH))
-            {
-                l_sys.j25WaterCollectTime++;
-            }
             if (waterLevel2 & FLOATBALLL)
             {
+                if (l_sys.j25WaterCollectTime < 0xffff)
+                {
+                    l_sys.j25WaterCollectTime++;
+                }
                 collectHalfCounter = 0;
                 EV1OutPut |= EV1COLLECT;
                 PUMP3OutPut |= PUMP3COLLECT;
@@ -1267,6 +1267,11 @@ void j25WaterMakeLogic(void)
     {
         l_sys.j25WaterMakeState = 1;
     }
+    if (l_sys.j25AutomaticCleanState)
+    {
+        l_sys.j25WaterMakeState = 0;
+        return;
+    }
 
     if (l_sys.j25WaterMakeState == 1)
     {
@@ -1316,7 +1321,7 @@ void j25AutomaticClean(void)
         rt_uint8_t waterLevel3 = j25GetFloatBall3();
         if (waterLevel3 & FLOATBALLH)
         {
-            if (_7DayCount < COUNT7D)
+            if ((_7DayCount < COUNT7D) && (l_sys.j25AutomaticCleanState == 0))
             {
                 _7DayCount++;
             }
@@ -1330,7 +1335,7 @@ void j25AutomaticClean(void)
         {
             _7DayCount = 0;
         }
-        if (_30DayDCount < COUNT30D)
+        if ((_30DayDCount < COUNT30D) && (l_sys.j25AutomaticCleanState == 0))
         {
             _30DayDCount++;
         }
@@ -1440,9 +1445,8 @@ void hotWaterOut(void)
     static uint8_t hotWaterOutState = 0;
     static uint8_t u8HeatNum        = 0;
     static uint8_t u8CloseNum       = 0;
-    static uint8_t keyBackKeyCount  = 0;
     uint8_t u8Temp                  = 0;
-    req_exe_log("WaterTempreture:%d,childLockState:%d", l_sys.j25WaterTempreture, l_sys.j25ChildLockState);
+    req_exe_log("alarm_bitmap[0]:%04x", g_sys.status.alarm_bitmap[1] & 0xff80);
     if ((fetchKeyRestain) &&
         ((l_sys.j25WaterTempreture == BOILINGTEM) || (l_sys.j25WaterTempreture == TEATEM) ||
          (l_sys.j25WaterTempreture == MILKTEM)) &&
@@ -1541,7 +1545,7 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
 
     j25WaterMakeLogic();
 
-    // j25AutomaticClean();
+    j25AutomaticClean();
 
     j25WaterCollect();
 

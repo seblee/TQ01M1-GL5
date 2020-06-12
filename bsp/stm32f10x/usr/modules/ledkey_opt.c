@@ -21,6 +21,7 @@
 #include "req_execution.h"
 #include "global_var.h"
 extern local_reg_st l_sys;
+extern sys_reg_st g_sys;
 #define SAMPLE_UART_NAME "uart3"
 /* 串口接收消息结构*/
 struct rx_msg
@@ -308,8 +309,15 @@ void ledSendOperation(void)
     {
         cleanKeyState = STATE_LED_OFF;
     }
+    if (g_sys.status.alarm_bitmap[1] & 0xff80)
+    {
+        fetchKeyState = STATE_LED_ON;
+    }
+    else
+    {
+        fetchKeyState = STATE_LED_OFF;
+    }
 
-    fetchKeyState       = STATE_LED_OFF;
     makeWaterGreenState = STATE_LED_OFF;
     loopBlueState       = STATE_LED_OFF;
     loopGreenState      = STATE_LED_OFF;

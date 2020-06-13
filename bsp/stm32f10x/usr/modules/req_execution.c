@@ -1258,6 +1258,7 @@ void j25WaterMakeLogic(void)
 {
     static uint16_t waterMakeCount = 0;
     uint16_t T3                    = COUNT30M;
+    uint8_t warningFlag            = 0;
 
     rt_uint8_t ball1 = j25GetFloatBall1();
     rt_uint8_t ball2 = j25GetFloatBall2();
@@ -1271,6 +1272,12 @@ void j25WaterMakeLogic(void)
     {
         l_sys.j25WaterMakeState = 0;
         return;
+    }
+    if (get_alarm_bitmap(ACL_SYS01_EXHAUST_HI) || get_alarm_bitmap(ACL_J25_BALL1) || get_alarm_bitmap(ACL_J25_BALL2) ||
+        get_alarm_bitmap(ACL_J25_BALL3) || get_alarm_bitmap(ACL_J25_COLLECT_TIME_OUT))
+    {
+        warningFlag = 1;
+        l_sys.j25WaterMakeState == 0;
     }
 
     if (l_sys.j25WaterMakeState == 1)
@@ -1301,7 +1308,14 @@ void j25WaterMakeLogic(void)
     {
         if (waterMakeCount < T3)
         {
-            waterMakeCount++;
+            if (warningFlag)
+            {
+                waterMakeCount = T3;
+            }
+            else
+            {
+                waterMakeCount++;
+            }
         }
         if (waterMakeCount == T3)
         {

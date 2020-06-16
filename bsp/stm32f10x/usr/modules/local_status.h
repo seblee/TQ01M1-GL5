@@ -173,6 +173,8 @@ typedef struct
     uint8_t j25WaterMakeState;
     uint8_t j25PureWaterOutState;
     uint8_t j25AutomaticCleanState;
+    rt_uint32_t j25AutomaticCleanCount7D;
+    rt_uint32_t j25AutomaticCleanCount30D;
     uint8_t j25DrinkTankState;
     uint8_t j25WaterTempreture;
     uint8_t j25ChildLockState;

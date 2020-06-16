@@ -17,6 +17,7 @@
 
 #include "auxilary.h"
 #include "local_status.h"
+#include "ledkey_opt.h"
 
 #define CONFIG_DEBUG
 #ifdef CONFIG_DEBUG

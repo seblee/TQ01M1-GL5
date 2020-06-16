@@ -88,40 +88,54 @@ enum
     MILKTEM,
 };
 
-extern _TKS_FLAGA_type keyState[4];
-extern volatile _TKS_FLAGA_type keyTrg[4];
+enum
+{
+    CMD_IDEL,
+    CMD_KEY,
+    CMD_LED,
+    CMD_REG_UP,
+    CMD_REG_DOWN,
+    CMD_AUX_DIAI,
+    CMD_AUX_DO,
+};
 
-#define KEY0 keyState[1].bits.b2
-#define KEY1 keyState[0].bits.b0
-#define KEY2 keyState[1].bits.b1
-#define KEY3 keyState[0].bits.b2
-#define KEY4 keyState[1].bits.b0
-#define KEY5 keyState[1].bits.b3
-#define KEY6 keyState[0].bits.b1
+extern _TKS_FLAGA_type keyState[5];
+extern volatile _TKS_FLAGA_type keyTrg[5];
 
-#define KEY0Restain keyState[3].bits.b2
-#define KEY1Restain keyState[2].bits.b0
-#define KEY2Restain keyState[3].bits.b1
-#define KEY3Restain keyState[2].bits.b2
-#define KEY4Restain keyState[3].bits.b0
-#define KEY5Restain keyState[3].bits.b3
-#define KEY6Restain keyState[2].bits.b1
+#define BLEON keyState[0].bits.b0
+#define BLEONTrg keyTrg[0].bits.b0
 
-#define KEY0Trg keyTrg[1].bits.b2
-#define KEY1Trg keyTrg[0].bits.b0
-#define KEY2Trg keyTrg[1].bits.b1
-#define KEY3Trg keyTrg[0].bits.b2
-#define KEY4Trg keyTrg[1].bits.b0
-#define KEY5Trg keyTrg[1].bits.b3
-#define KEY6Trg keyTrg[0].bits.b1
+#define KEY0 keyState[2].bits.b2
+#define KEY1 keyState[1].bits.b0
+#define KEY2 keyState[2].bits.b1
+#define KEY3 keyState[1].bits.b2
+#define KEY4 keyState[2].bits.b0
+#define KEY5 keyState[2].bits.b3
+#define KEY6 keyState[1].bits.b1
 
-#define KEY0RestainTrg keyTrg[3].bits.b2
-#define KEY1RestainTrg keyTrg[2].bits.b0
-#define KEY2RestainTrg keyTrg[3].bits.b1
-#define KEY3RestainTrg keyTrg[2].bits.b2
-#define KEY4RestainTrg keyTrg[3].bits.b0
-#define KEY5RestainTrg keyTrg[3].bits.b3
-#define KEY6RestainTrg keyTrg[2].bits.b1
+#define KEY0Restain keyState[4].bits.b2
+#define KEY1Restain keyState[3].bits.b0
+#define KEY2Restain keyState[4].bits.b1
+#define KEY3Restain keyState[3].bits.b2
+#define KEY4Restain keyState[4].bits.b0
+#define KEY5Restain keyState[4].bits.b3
+#define KEY6Restain keyState[3].bits.b1
+
+#define KEY0Trg keyTrg[2].bits.b2
+#define KEY1Trg keyTrg[1].bits.b0
+#define KEY2Trg keyTrg[2].bits.b1
+#define KEY3Trg keyTrg[1].bits.b2
+#define KEY4Trg keyTrg[2].bits.b0
+#define KEY5Trg keyTrg[2].bits.b3
+#define KEY6Trg keyTrg[1].bits.b1
+
+#define KEY0RestainTrg keyTrg[4].bits.b2
+#define KEY1RestainTrg keyTrg[3].bits.b0
+#define KEY2RestainTrg keyTrg[4].bits.b1
+#define KEY3RestainTrg keyTrg[3].bits.b2
+#define KEY4RestainTrg keyTrg[4].bits.b0
+#define KEY5RestainTrg keyTrg[4].bits.b3
+#define KEY6RestainTrg keyTrg[3].bits.b1
 
 #define boilingKey KEY0
 #define normalKey KEY1

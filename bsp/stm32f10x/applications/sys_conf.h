@@ -681,7 +681,7 @@ typedef struct
     uint16_t j25UVWarnTime;                      // T7
     uint16_t j25WaterOutDelay;                   // T8
     uint16_t j25UsingAutoCleanInterval;          // T9
-    uint16_t j25TransformChamberEmptyTime;       // T10
+    uint16_t j25TransformChamberEmptyInterval;   // T10
     uint16_t j25BoilingTempreture;               // W1
     uint16_t j25TeaTempreture;                   // W2
     uint16_t j25MilkTempreture;                  // W3

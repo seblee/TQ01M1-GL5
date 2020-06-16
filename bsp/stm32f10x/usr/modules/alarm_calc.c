@@ -1302,28 +1302,28 @@ static uint16_t acl08(alarm_acl_status_st *acl_ptr)
 // ACL_E9
 static uint16_t acl09(alarm_acl_status_st *acl_ptr)
 {
-    uint8_t data;
+    return (ALARM_ACL_CLEARED);
+    // uint8_t data;
+    // // 解除 报警
+    // if (acl_clear(acl_ptr))
+    // {
+    //     return (ALARM_ACL_CLEARED);
+    // }
+    // if (l_sys.Pwp_Open == FALSE)
+    // {
+    //     return (ALARM_ACL_CLEARED);
+    // }
 
-    // 解除 报警
-    if (acl_clear(acl_ptr))
-    {
-        return (ALARM_ACL_CLEARED);
-    }
-    if (l_sys.Pwp_Open == FALSE)
-    {
-        return (ALARM_ACL_CLEARED);
-    }
+    // if (l_sys.Pwp_Open_Time >= g_sys.config.alarm[ACL_E9].alarm_param)
+    // {
+    //     data = 1;
+    // }
+    // else
+    // {
+    //     data = 0;
+    // }
 
-    if (l_sys.Pwp_Open_Time >= g_sys.config.alarm[ACL_E9].alarm_param)
-    {
-        data = 1;
-    }
-    else
-    {
-        data = 0;
-    }
-
-    return (data);
+    // return (data);
 }
 // ACL_WATER_LEAK
 static uint16_t acl10(alarm_acl_status_st *acl_ptr)
@@ -1357,11 +1357,11 @@ static uint16_t acl11(alarm_acl_status_st *acl_ptr)
         return (ALARM_ACL_CLEARED);
     }
 
-    if (Exhaust_Temp > g_sys.config.alarm[ACL_E11].alarm_param)
+    if (Exhaust_Temp > g_sys.config.ComPara.j25ExhaustWarnTempreture)
     {
         data = ALARM_ACL_TRIGGERED;
     }
-    else if ((Exhaust_Temp > (g_sys.config.alarm[ACL_E11].alarm_param - 50)))
+    else if (Exhaust_Temp > g_sys.config.ComPara.j25ExhaustWarnRelieveTempture)
     {
         data = ALARM_ACL_HOLD;
     }
@@ -1585,43 +1585,85 @@ static uint16_t acl23(alarm_acl_status_st *acl_ptr)  // ACL_J25_HI_TEM
 static uint16_t acl24(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL1
 {
     static rt_uint8_t waterlevel1;
+    static rt_uint8_t aclCount = 0;
+
     waterlevel1 = j25GetFloatBall1();
     if ((waterlevel1 > FLOATBALLL) && (waterlevel1 < (FLOATBALLH | FLOATBALLL)))
     {
-        return (ALARM_ACL_TRIGGERED);
+        if (aclCount < 20)
+        {
+            aclCount++;
+            return (ALARM_ACL_CLEARED);
+        }
+        else
+        {
+            return (ALARM_ACL_TRIGGERED);
+        }
     }
     else
     {
+        aclCount = 0;
         return (ALARM_ACL_CLEARED);
     }
 }
 static uint16_t acl25(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL2
 {
     static rt_uint8_t waterlevel2;
+    static rt_uint8_t aclCount = 0;
+
     waterlevel2 = j25GetFloatBall2();
     if ((waterlevel2 > FLOATBALLL) && (waterlevel2 < (FLOATBALLH | FLOATBALLL)))
     {
-        return (ALARM_ACL_TRIGGERED);
+        if (aclCount < 20)
+        {
+            aclCount++;
+            return (ALARM_ACL_CLEARED);
+        }
+        else
+        {
+            return (ALARM_ACL_TRIGGERED);
+        }
     }
     else
     {
+        aclCount = 0;
         return (ALARM_ACL_CLEARED);
     }
 }
 static uint16_t acl26(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL3
 {
     static rt_uint8_t waterlevel3;
+    static rt_uint8_t aclCount = 0;
+    rt_uint16_t value          = 0;
+
     waterlevel3 = j25GetFloatBall3();
     if ((waterlevel3 >= FLOATBALLH) && (waterlevel3 < (FLOATBALLH | FLOATBALLM | FLOATBALLL)))
     {
-        return (ALARM_ACL_TRIGGERED);
+        if (aclCount < 20)
+        {
+            aclCount++;
+            return (ALARM_ACL_CLEARED);
+        }
+        else
+        {
+            return (ALARM_ACL_TRIGGERED);
+        }
     }
     else if ((waterlevel3 >= FLOATBALLM) && (waterlevel3 < (FLOATBALLM | FLOATBALLL)))
     {
-        return (ALARM_ACL_TRIGGERED);
+        if (aclCount < 20)
+        {
+            aclCount++;
+            return (ALARM_ACL_CLEARED);
+        }
+        else
+        {
+            return (ALARM_ACL_TRIGGERED);
+        }
     }
     else
     {
+        aclCount = 0;
         return (ALARM_ACL_CLEARED);
     }
 }

@@ -20,6 +20,7 @@
 #include "auxilary.h"
 #include "req_execution.h"
 #include "global_var.h"
+#include "mb_event_cpad.h"
 extern local_reg_st l_sys;
 extern sys_reg_st g_sys;
 #define SAMPLE_UART_NAME "uart3"
@@ -34,14 +35,21 @@ static rt_device_t serial;
 /* 消息队列控制块 */
 static struct rt_messagequeue rx_mq;
 
-unsigned char recOK                                 = 0;
+static unsigned char ledkeyRecOK = 0;
 static unsigned char txBuff[RT_SERIAL_RB_BUFSZ + 1] = {0xa7, 0xf3, 0xaa, 0x04, 0x06};
 static unsigned char rxBuff[RT_SERIAL_RB_BUFSZ + 1] = {0};
 extern const rt_uint8_t protocolHeader[2];
 static rt_uint8_t rxCount = 0;
+
+#define PARA_ADDR_START 64
+#define PARA_NUM 22
+#define STATE_ADDR_START 500
+#define STATE_NUM 8
+
+static rt_uint8_t regMap[PARA_NUM + STATE_NUM][14] = {0};
 /**********************key led*********************************************************/
-_TKS_FLAGA_type keyState[4];
-volatile _TKS_FLAGA_type keyTrg[4];
+_TKS_FLAGA_type keyState[5];
+volatile _TKS_FLAGA_type keyTrg[5];
 _USR_FLAGA_type ledState[7];
 _BEEP_STATE beepState = {0, 0, 0};
 
@@ -62,7 +70,7 @@ static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
     rxCount += rx_length;
     receiveProtocol();
 
-    if (recOK)
+    if (ledkeyRecOK)
     {
         result = rt_mq_send(&rx_mq, &msg, sizeof(msg));
         if (result == -RT_EFULL)
@@ -144,7 +152,16 @@ static void keyRecOperation(_TKS_FLAGA_type *keyState)
 
     if (fetchKeyRestainTrg)
     {
+    }   
+    if (BLEON)
+    {
     }
+    if (BLEONTrg)
+    {
+        rt_memset(regMap, 0, sizeof(regMap));
+        rt_kprintf("BLEON\n");
+    }
+
 }
 /***
  *
@@ -164,8 +181,33 @@ static void recOperation(rt_uint8_t *serialDataIn)
             break;
         case CMD_REG_UP:
             break;
-        case CMD_REG_DOWN:
+        case CMD_REG_DOWN: {
+            rt_uint8_t length = *(serialDataIn + 3) - 2;
+            rt_uint8_t row, index;
+            rt_uint16_t address = (*(serialDataIn + 4) << 8) + *(serialDataIn + 5);
+            rt_kprintf("length:%d address:%d \n", length, address);
+            cpad_eMBRegHoldingCB(serialDataIn + 6, address, length / 2, CPAD_MB_REG_MULTIPLE_WRITE);
+            if (address > STATE_ADDR_START)
+            {
+                row = (address - STATE_ADDR_START) / 6 + PARA_NUM;
+            }
+            else
+            {
+                row = (address - PARA_ADDR_START) / 6;
+            }
+            index = ((address - PARA_ADDR_START) % 6) * 2;
+
+            rt_kprintf("((length > (12 - index)) ? (12 - index) : length):%d row:%d \n",
+                       (length > (12 - index)) ? (12 - index) : length, row);
+            rt_memcpy(&regMap[row][index + 2], serialDataIn + 6, (length > (12 - index)) ? (12 - index) : length);
+            if ((12 - index) < length)
+            {
+                row++;
+                rt_kprintf("(length + index - 12):%d row:%d \n", length + index - 12, row);
+                rt_memcpy(&regMap[row][2], serialDataIn + 12 - index, length + index - 12);
+            }
             break;
+        }
         case CMD_AUX_DIAI:
             break;
         case CMD_AUX_DO:
@@ -229,7 +271,7 @@ again:
         checkIndex = rxBuff[3] + 4;
         if (checkSum == rxBuff[checkIndex])
         {
-            recOK = 1;
+            ledkeyRecOK = 1;
             recOperation(rxBuff);
             len    = rxBuff[3] + 5;
             rxStep = 0;
@@ -247,10 +289,9 @@ again:
 rxContinue:
     return;
 }
+ 
+ 
 
-extern sys_reg_st g_sys;
-
-#include "sys_status.h"
 void ledSendOperation(void)
 {
     if (l_sys.j25WaterMakeState)
@@ -326,21 +367,53 @@ void ledSendOperation(void)
 
     beepState.byte = 0;
 }
+rt_uint8_t *getRegData(void)
+{
+    rt_uint8_t temp[12];
+    for (rt_uint8_t i = 0; i < 30; i++)
+    {
+        rt_uint16_t address = (i < PARA_NUM) ? (i * 6 + PARA_ADDR_START) : ((i - PARA_NUM) * 6 + STATE_ADDR_START);
+        cpad_eMBRegHoldingCB(temp, address, 6, CPAD_MB_REG_READ);
+        if (rt_memcmp(&regMap[i][2], temp, 12) != 0)
+        {
+            regMap[i][0] = (address >> 8);
+            regMap[i][1] = address & 0xff;
+            rt_memcpy(&regMap[i][2], temp, 12);
+            rt_kprintf("index:%04d\n", address - ((i < PARA_NUM) ? PARA_ADDR_START : 0));
+            return &regMap[i][0];
+        }
+    }
+    return RT_NULL;
+}
 static rt_uint8_t dataRepare(rt_uint8_t *buff)
 {
-    rt_uint8_t len = 0;
-    ledSendOperation();
-    rt_memcpy(buff, protocolHeader, 2);
-    *(buff + 2) = CMD_LED;
-    *(buff + 3) = 8;
-    *(buff + 4) = beepState.byte;
-    for (len = 0; len < (*(buff + 3) - 1); len++)
+    rt_uint8_t *regPoint = RT_NULL;
+    if (BLEON)
     {
-        *(buff + 5 + len) = ledState[len].byte;
+        regPoint = getRegData();
     }
-    *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
-    len                       = *(buff + 3) + 5;
-    return len;
+    rt_memcpy(buff, protocolHeader, 2);
+    if (regPoint)
+    {
+        buff[2] = CMD_REG_UP;
+        buff[3] = 14;
+        rt_memcpy(&buff[4], regPoint, 14);
+    }
+    else
+    {
+        rt_uint8_t len = 0;
+        ledSendOperation();
+        *(buff + 2) = CMD_LED;
+        *(buff + 3) = 8;
+        *(buff + 4) = beepState.byte;
+        for (len = 0; len < (*(buff + 3) - 1); len++)
+        {
+            *(buff + 5 + len) = ledState[len].byte;
+        }
+        *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
+    }
+
+    return (*(buff + 3) + 5);
 }
 static void serial_thread_entry(void *parameter)
 {
@@ -357,11 +430,11 @@ static void serial_thread_entry(void *parameter)
         result = rt_mq_recv(&rx_mq, &msg, sizeof(msg), 1000);
         if (result == RT_EOK)
         {
-            if (recOK)
+            if (ledkeyRecOK)
             {
                 rx_length = dataRepare(txBuff);
                 rt_device_write(serial, 0, txBuff, rx_length);
-                recOK = 0;
+                ledkeyRecOK = 0;
             }
         }
     }

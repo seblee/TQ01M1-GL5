@@ -187,8 +187,7 @@ void sys_running_mode_update(void)
 
 uint16_t sys_get_pwr_sts(void)
 {
-    extern sys_reg_st g_sys;
-    //		if((g_sys.status.status_remap[WORK_MODE_STS_REG_NO]>>PWR_STS_BPOS) & 0X0001)
+    extern sys_reg_st g_sys; 
     if ((g_sys.status.ComSta.u16Status_remap[WORK_MODE_STS_REG_NO] >> PWR_STS_BPOS) & 0X0001)
     {
         return 1;

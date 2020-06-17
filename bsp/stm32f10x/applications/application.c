@@ -197,12 +197,7 @@ int rt_application_init(void)
     if (testcase_thread != RT_NULL)
         rt_thread_startup(testcase_thread);
 
-    int auxilaryStart(void);
-    auxilaryStart();
-
-    int ledKeyStart(void);
-    ledKeyStart();
-    return 0;
+       return 0;
 }
 
 void set_boot_flag(void)

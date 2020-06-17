@@ -14,7 +14,6 @@
  * All rights reserved
  *
  **/
-
 #include "ledkey_opt.h"
 #include "local_status.h"
 #include "auxilary.h"
@@ -35,11 +34,11 @@ static rt_device_t serial;
 /* 消息队列控制块 */
 static struct rt_messagequeue rx_mq;
 
-static unsigned char ledkeyRecOK = 0;
+static unsigned char ledkeyRecOK                    = 0;
 static unsigned char txBuff[RT_SERIAL_RB_BUFSZ + 1] = {0xa7, 0xf3, 0xaa, 0x04, 0x06};
 static unsigned char rxBuff[RT_SERIAL_RB_BUFSZ + 1] = {0};
-extern const rt_uint8_t protocolHeader[2];
-static rt_uint8_t rxCount = 0;
+const rt_uint8_t protocolHeader[2]                  = {0xff, 0xa5};
+static rt_uint8_t rxCount                           = 0;
 
 #define PARA_ADDR_START 64
 #define PARA_NUM 22
@@ -152,7 +151,7 @@ static void keyRecOperation(_TKS_FLAGA_type *keyState)
 
     if (fetchKeyRestainTrg)
     {
-    }   
+    }
     if (BLEON)
     {
     }
@@ -161,7 +160,6 @@ static void keyRecOperation(_TKS_FLAGA_type *keyState)
         rt_memset(regMap, 0, sizeof(regMap));
         rt_kprintf("BLEON\n");
     }
-
 }
 /***
  *
@@ -289,8 +287,6 @@ again:
 rxContinue:
     return;
 }
- 
- 
 
 void ledSendOperation(void)
 {
@@ -485,3 +481,4 @@ int ledKeyStart(void)
 
     return ret;
 }
+INIT_APP_EXPORT(ledKeyStart);

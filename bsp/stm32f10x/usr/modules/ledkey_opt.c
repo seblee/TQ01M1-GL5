@@ -47,6 +47,7 @@ static rt_uint8_t rxCount                           = 0;
 
 static rt_uint8_t regMap[PARA_NUM + STATE_NUM][14] = {0};
 /**********************key led*********************************************************/
+const rt_uint16_t keyBeepMask[2] = {0x0705, 0x0802};
 _TKS_FLAGA_type keyState[5];
 volatile _TKS_FLAGA_type keyTrg[5];
 _USR_FLAGA_type ledState[7];
@@ -209,6 +210,8 @@ static void recOperation(rt_uint8_t *serialDataIn)
         case CMD_AUX_DIAI:
             break;
         case CMD_AUX_DO:
+            break;
+        case CMD_PARA:
             break;
         default:
             break;
@@ -394,8 +397,21 @@ static rt_uint8_t dataRepare(rt_uint8_t *buff)
         buff[2] = CMD_REG_UP;
         buff[3] = 14;
         rt_memcpy(&buff[4], regPoint, 14);
+        goto repareExit;
     }
-    else
+    if (!PARAOK)
+    {
+        *(buff + 2) = CMD_PARA;
+        *(buff + 3) = 4;
+        *(buff + 4) = keyBeepMask[0];
+        *(buff + 5) = (keyBeepMask[0] >> 8);
+        *(buff + 6) = keyBeepMask[1];
+        *(buff + 7) = (keyBeepMask[1] >> 8);
+
+        *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
+        goto repareExit;
+    }
+
     {
         rt_uint8_t len = 0;
         ledSendOperation();
@@ -407,8 +423,10 @@ static rt_uint8_t dataRepare(rt_uint8_t *buff)
             *(buff + 5 + len) = ledState[len].byte;
         }
         *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
+        goto repareExit;
     }
 
+repareExit:
     return (*(buff + 3) + 5);
 }
 static void serial_thread_entry(void *parameter)

@@ -97,6 +97,7 @@ enum
     CMD_REG_DOWN,
     CMD_AUX_DIAI,
     CMD_AUX_DO,
+    CMD_PARA,
 };
 
 extern _TKS_FLAGA_type keyState[5];
@@ -104,6 +105,8 @@ extern volatile _TKS_FLAGA_type keyTrg[5];
 
 #define BLEON keyState[0].bits.b0
 #define BLEONTrg keyTrg[0].bits.b0
+#define PARAOK keyState[0].bits.b1
+#define PARAOKTrg keyTrg[0].bits.b1
 
 #define KEY0 keyState[2].bits.b2
 #define KEY1 keyState[1].bits.b0

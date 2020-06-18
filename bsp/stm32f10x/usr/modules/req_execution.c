@@ -1257,8 +1257,7 @@ void j25CompressorWork(FunctionalState state)
 void j25WaterMakeLogic(void)
 {
     static uint16_t waterMakeCount = 0;
-    uint16_t T3                    = COUNT30M;
-    uint8_t warningFlag            = 0;
+    uint16_t T3                    = COUNT30M; 
 
     rt_uint8_t ball1 = j25GetFloatBall1();
     rt_uint8_t ball2 = j25GetFloatBall2();
@@ -1271,12 +1270,14 @@ void j25WaterMakeLogic(void)
     if (l_sys.j25AutomaticCleanState)
     {
         l_sys.j25WaterMakeState = 0;
-        return;
+        if (waterMakeCount < T3)
+            waterMakeCount = T3;
     }
     if (get_alarm_bitmap(ACL_SYS01_EXHAUST_HI) || get_alarm_bitmap(ACL_J25_BALL1) || get_alarm_bitmap(ACL_J25_BALL2) ||
         get_alarm_bitmap(ACL_J25_BALL3) || get_alarm_bitmap(ACL_J25_COLLECT_TIME_OUT))
     {
-        warningFlag             = 1;
+        if (waterMakeCount < T3)
+            waterMakeCount = T3;
         l_sys.j25WaterMakeState = 0;
     }
 
@@ -1308,16 +1309,9 @@ void j25WaterMakeLogic(void)
     {
         if (waterMakeCount < T3)
         {
-            if (warningFlag)
-            {
-                waterMakeCount = T3;
-            }
-            else
-            {
-                waterMakeCount++;
-            }
+            waterMakeCount++;
         }
-        if (waterMakeCount == T3)
+        else if (waterMakeCount == T3)
         {
             j25CompressorWork(DISABLE);
             j25TransformChamberStateSet(TRANSCHAMBEREMPTY);
@@ -1335,7 +1329,7 @@ void j25AutomaticClean(void)
         rt_uint8_t waterLevel3 = j25GetFloatBall3();
         if (waterLevel3 & FLOATBALLH)
         {
-            if ((l_sys.j25AutomaticCleanCount7D < g_sys.config.ComPara.j25IdelAutoCleanInterval * 2) &&
+            if ((l_sys.j25AutomaticCleanCount7D < g_sys.config.ComPara.j25IdelAutoCleanInterval * 24 * 60 * 60 * 2) &&
                 (l_sys.j25AutomaticCleanState == 0))
             {
                 l_sys.j25AutomaticCleanCount7D++;
@@ -1351,7 +1345,7 @@ void j25AutomaticClean(void)
         {
             l_sys.j25AutomaticCleanCount7D = 0;
         }
-        if ((l_sys.j25AutomaticCleanCount30D < g_sys.config.ComPara.j25UsingAutoCleanInterval * 2) &&
+        if ((l_sys.j25AutomaticCleanCount30D < g_sys.config.ComPara.j25UsingAutoCleanInterval * 24 * 60 * 60 * 2) &&
             (l_sys.j25AutomaticCleanState == 0))
         {
             l_sys.j25AutomaticCleanCount30D++;
@@ -1368,14 +1362,14 @@ void j25AutomaticClean(void)
         j25AutomaticCleanCount++;
     }
 
-    if (l_sys.j25AutomaticCleanState == 1)
+    if ((l_sys.j25AutomaticCleanState & 0x0f) == 1)
     {
         j25TransformChamberStateSet(TRANSCHAMBEREMPTY);
         j25WaterCollectStateSet(COLLECTHALF);
         j25DrinkTankStateSet(DRINKTANKEMPTY);
         l_sys.j25AutomaticCleanState++;
     }
-    if (l_sys.j25AutomaticCleanState == 2)
+    if ((l_sys.j25AutomaticCleanState & 0x0f) == 2)
     {
         rt_uint8_t waterlevel1 = j25GetFloatBall1();
         if (waterlevel1 & FLOATBALLH)
@@ -1387,26 +1381,33 @@ void j25AutomaticClean(void)
             j25TransformChamberStateSet(TRANSCHAMBERINJECT);
         }
     }
-    if (l_sys.j25AutomaticCleanState == 3)
+    if ((l_sys.j25AutomaticCleanState & 0x0f) == 3)
     {
         j25TransformChamberStateSet(TRANSCHAMBERIDEL);
         j25DrinkTankStateSet(DRINKTANKINJECT);
         l_sys.j25AutomaticCleanState++;
         j25AutomaticCleanCount = 0;
     }
-    if ((l_sys.j25AutomaticCleanState == 4) && (j25AutomaticCleanCount > COUNT9M))
+    if (((l_sys.j25AutomaticCleanState & 0x0f) == 4) && (j25AutomaticCleanCount > COUNT9M))
     {
         l_sys.j25AutomaticCleanState++;
         j25AutomaticCleanCount = 0;
         j25CompressorWork(ENABLE);
     }
-    if ((l_sys.j25AutomaticCleanState == 5) && (j25AutomaticCleanCount > COUNT30M))
+    if (((l_sys.j25AutomaticCleanState & 0x0f) == 5) && (j25AutomaticCleanCount > COUNT30M))
     {
-        l_sys.j25AutomaticCleanState++;
-        j25CompressorWork(DISABLE);
-        j25TransformChamberStateSet(TRANSCHAMBEREMPTY);
-        j25WaterCollectStateSet(COLLECTHALF);
-        j25DrinkTankStateSet(DRINKTANKEMPTY);
+        if (l_sys.j25AutomaticCleanState & 0xf0)
+        {
+            l_sys.j25AutomaticCleanState = 0;
+        }
+        else
+        {
+            l_sys.j25AutomaticCleanState++;
+            j25CompressorWork(DISABLE);
+            j25TransformChamberStateSet(TRANSCHAMBEREMPTY);
+            j25WaterCollectStateSet(COLLECTHALF);
+            j25DrinkTankStateSet(DRINKTANKEMPTY);
+        }
     }
 }
 
@@ -1500,21 +1501,22 @@ void hotWaterOut(void)
                 switch (l_sys.j25WaterTempreture)
                 {
                     case IDELTEM:
-                        u8Temp = 25;  //常温
+                        u8Temp = 28;  //常温
                         break;
                     case BOILINGTEM:
-                        u8Temp = 99;  // 开水 break;
+                        u8Temp = g_sys.config.ComPara.j25BoilingTempreture;  // boiling
+                        break;
                     case NORMALTEM:
-                        u8Temp = 25;  //常温
+                        u8Temp = 28;  //常温
                         break;
                     case TEATEM:
-                        u8Temp = 65;  // 65℃
+                        u8Temp = g_sys.config.ComPara.j25TeaTempreture;  // 65℃
                         break;
                     case MILKTEM:
-                        u8Temp = 45;  // 45℃
+                        u8Temp = g_sys.config.ComPara.j25MilkTempreture;  // 45℃
                         break;
                     default:
-                        u8Temp = 25;  //常温
+                        u8Temp = 28;  //常温
                         break;
                 }
                 if (Heat_Send(HEAT_WRITEPARA, OPEN_HEAT, u8Temp, 5000))
@@ -1581,6 +1583,6 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
 
     j25OutPutDO();
 
-    req_exe_log("watermake:%d,Clean:%d,DrinkTank：%d,Collect:%d", l_sys.j25WaterMakeState, l_sys.j25AutomaticCleanState,
+    req_exe_log("watermake:%d,Clean:%d,DrinkTank:%d,Collect:%d", l_sys.j25WaterMakeState, l_sys.j25AutomaticCleanState,
                 l_sys.j25DrinkTankState, l_sys.j25WaterCollectState);
 }

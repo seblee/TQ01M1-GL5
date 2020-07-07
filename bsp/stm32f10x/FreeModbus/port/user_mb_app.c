@@ -425,7 +425,7 @@ void mbs_sts_update(void) // 更新本地变量到协议栈寄存器中
 
     if (mbm_cmd_reg == 0x01)
     {
-        clear_alarm(0xFF);
+        clear_alarm(0xff);
         mbm_cmd_reg = 0;
     }
 }

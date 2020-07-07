@@ -115,10 +115,10 @@
 #define RT_SERIAL_USING_DMA
 #define RT_SERIAL_RB_BUFSZ 64
 #define RT_USING_I2C
+#define RT_USING_I2C_BITOPS
+#define RT_USING_PIN
 #define RT_USING_RTC
 #define RT_USING_ALARMS
-
-/* SECTION: I2C */
 
 /* SECTION: device filesystem */
 
@@ -174,6 +174,12 @@
 #define PKG_USING_AT_DEVICE_LATEST_VERSION
 
 /* IoT Cloud */
+
+/* peripheral libraries and drivers */
+#define PKG_USING_I2C_TOOLS
+// #define I2C_TOOLS_USE_SW_I2C
+#define I2C_TOOLS_SW_ACK_TIMEOUT 100
+#define PKG_USING_I2C_TOOLS_LATEST_VERSION
 
 /* security packages */
 

@@ -157,10 +157,10 @@ int mbedtls_client_context(MbedTLSSession *session)
     mbedtls_ssl_conf_authmode(&session->conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
     mbedtls_ssl_conf_ca_chain(&session->conf, &session->cacert, NULL);
     mbedtls_ssl_conf_rng(&session->conf, mbedtls_ctr_drbg_random, &session->ctr_drbg);
-
+    mbedtls_ssl_conf_read_timeout(&session->conf,2000 );
     mbedtls_ssl_conf_dbg(&session->conf, _ssl_debug, NULL);
 
-    ret = mbedtls_ssl_setup(&session->ssl, &session->conf);
+    ret = mbedtls_ssl_setup(&session->ssl, &session->conf); 
     if (ret != 0)
     {
         LOG_E("mbedtls_ssl_setup error, return -0x%x\n", -ret);
@@ -185,7 +185,7 @@ int mbedtls_client_connect(MbedTLSSession *session)
 
     LOG_D("Connected %s:%s success...", session->host, session->port);
 
-    mbedtls_ssl_set_bio(&session->ssl, &session->server_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
+    mbedtls_ssl_set_bio(&session->ssl, &session->server_fd, mbedtls_net_send, NULL, mbedtls_net_recv_timeout);
 
     while ((ret = mbedtls_ssl_handshake(&session->ssl)) != 0)
     {
@@ -220,7 +220,7 @@ int mbedtls_client_read(MbedTLSSession *session, unsigned char *buf , size_t len
     } 
 
     ret = mbedtls_ssl_read(&session->ssl, (unsigned char *)buf, len);
-    if (ret < 0)
+    if (ret < 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
     {
         LOG_E("mbedtls_client_read data error, return -0x%x", -ret);
     }
@@ -238,7 +238,7 @@ int mbedtls_client_write(MbedTLSSession *session, const unsigned char *buf , siz
     }
 
     ret = mbedtls_ssl_write(&session->ssl, (unsigned char *)buf, len);
-    if (ret < 0)
+    if (ret < 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
     {
         LOG_E("mbedtls_client_write data error, return -0x%x", -ret);
     }

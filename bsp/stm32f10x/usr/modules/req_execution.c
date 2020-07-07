@@ -13,7 +13,7 @@
 #include "pwm_bsp.h"
 #include "usart_bsp.h"
 
-#include "ledkey_opt.h"
+#include "ble_key.h"
 
 #define CONFIG_DEBUG
 #ifdef CONFIG_DEBUG
@@ -1257,7 +1257,7 @@ void j25CompressorWork(FunctionalState state)
 void j25WaterMakeLogic(void)
 {
     static uint16_t waterMakeCount = 0;
-    uint16_t T3                    = COUNT30M; 
+    uint16_t T3                    = COUNT30M;
 
     rt_uint8_t ball1 = j25GetFloatBall1();
     rt_uint8_t ball2 = j25GetFloatBall2();

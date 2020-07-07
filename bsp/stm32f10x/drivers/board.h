@@ -71,28 +71,28 @@
 /* board configuration */
 
 /* whether use board external SRAM memory */
-// <e>Use external SRAM memory on the board
-//  <i>Enable External SRAM memory
+// Use external SRAM memory on the board
+// Enable External SRAM memory
 #define STM32_EXT_SRAM          0
-//  <o>Begin Address of External SRAM
-//      <i>Default: 0x68000000
+// Begin Address of External SRAM
+// Default: 0x68000000
 #define STM32_EXT_SRAM_BEGIN    0x68000000 /* the begining address of external SRAM */
-//  <o>End Address of External SRAM
-//      <i>Default: 0x68080000
+// End Address of External SRAM
+// Default: 0x68080000
 #define STM32_EXT_SRAM_END      0x68080000 /* the end address of external SRAM */
-// </e>
+// 
 
-// <o> Internal SRAM memory size[Kbytes] <8-64>
-//  <i>Default: 64
+// Internal SRAM memory size[Kbytes]  8-64 
+// Default: 64
 #define STM32_SRAM_SIZE         52
 #define STM32_SRAM_END          (0x20000000 + STM32_SRAM_SIZE * 1024)
 
-// <<< Use Configuration Wizard in Context Menu >>>
+// Use Configuration Wizard in Context Menu 
 
 /* USART driver select. */
 //#define RT_USING_UART1
 //#define RT_USING_UART2
-#define RT_USING_UART3
+//#define RT_USING_UART3
 #define RT_USING_UART4
 #define RT_USING_UART5
 

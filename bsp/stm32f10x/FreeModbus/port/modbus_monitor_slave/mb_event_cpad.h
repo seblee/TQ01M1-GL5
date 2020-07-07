@@ -8,6 +8,9 @@
 #include "mbport_cpad.h"
 
 #include "sys_def.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 typedef enum
 {
     MB_ENOERR,    /*!< no error. */
@@ -57,4 +60,9 @@ eMBErrorCode cpad_eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT 
 
 void Cpad_Update(void);
 void Cpad_Send(uint8_t u8RW, uint16_t u16Addr, uint8_t u8Num, uint16_t u16Offset);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

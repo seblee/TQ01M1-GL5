@@ -17,7 +17,7 @@
 #include <rtthread.h>
 #include "auxilary.h"
 #include "local_status.h"
-#include "ledkey_opt.h"
+#include "ble_key.h"
 
 #define CONFIG_DEBUG
 #ifdef CONFIG_DEBUG
@@ -35,8 +35,8 @@ static rt_device_t serial;
 
 static rt_uint8_t txBuff[RT_SERIAL_RB_BUFSZ + 1] = {0xa7, 0xf3, 0xaa, 0x04, 0x06};
 static rt_uint8_t rxBuff[RT_SERIAL_RB_BUFSZ + 1] = {0xa7, 0xf3, 0xaa, 0x04, 0x06};
-extern const rt_uint8_t protocolHeader[2];
-static rt_uint8_t rxCount = 0;
+const rt_uint8_t protocolHeader[2]               = {0xff, 0xa5};
+static rt_uint8_t rxCount                        = 0;
 
 extern local_reg_st l_sys;
 

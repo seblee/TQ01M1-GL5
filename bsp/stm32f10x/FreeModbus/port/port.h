@@ -64,7 +64,7 @@ enum
     UPORT_MAX,
 };
 
-#define UPORT_SLAVE		UPORT_PM25
+#define UPORT_SLAVE UPORT_PM25
 #define ENTER_CRITICAL_SECTION() EnterCriticalSection()
 #define EXIT_CRITICAL_SECTION() ExitCriticalSection()
 

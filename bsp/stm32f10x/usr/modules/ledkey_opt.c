@@ -20,9 +20,20 @@
 #include "req_execution.h"
 #include "global_var.h"
 #include "mb_event_cpad.h"
+#define CONFIG_DEBUG
+#ifdef CONFIG_DEBUG
+#ifndef ledKey_log
+#define ledKey_log(N, ...) rt_kprintf("[%d][ledKey:%04d]" N "\r\n", rt_tick_get(), __LINE__, ##__VA_ARGS__)
+#endif /* ledKey_log(...) */
+#else
+#define ledKey_log(...)
+#endif /* ! CONFIG_DEBUG */
+
+#define SAMPLE_UART_NAME "uart3"
+
 extern local_reg_st l_sys;
 extern sys_reg_st g_sys;
-#define SAMPLE_UART_NAME "uart3"
+
 /* 串口接收消息结构*/
 struct rx_msg
 {
@@ -55,32 +66,8 @@ _BEEP_STATE beepState = {0, 0, 0};
 
 /*************************function******************************************************/
 static void receiveProtocol(void);
+/***************************************************************************************/
 
-/* 接收数据回调函数 */
-static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
-{
-    struct rx_msg msg;
-    rt_err_t result = RT_EOK;
-    rt_size_t rx_length;
-    msg.dev  = dev;
-    msg.size = size;
-
-    /* 从串口读取数据*/
-    rx_length = rt_device_read(dev, 0, rxBuff + rxCount, size);
-    rxCount += rx_length;
-    receiveProtocol();
-
-    if (ledkeyRecOK)
-    {
-        result = rt_mq_send(&rx_mq, &msg, sizeof(msg));
-        if (result == -RT_EFULL)
-        {
-            /* 消息队列满 */
-            rt_kprintf("message queue full！\n");
-        }
-    }
-    return result;
-}
 static void keyRecOperation(_TKS_FLAGA_type *keyState)
 {
     static rt_uint8_t k_count[4] = {0};
@@ -161,6 +148,82 @@ static void keyRecOperation(_TKS_FLAGA_type *keyState)
         rt_memset(regMap, 0, sizeof(regMap));
         rt_kprintf("BLEON\n");
     }
+}
+
+void ledSendOperation(void)
+{
+    if (l_sys.j25ChildLockState)
+    {
+        childLockState = STATE_LED_ON;
+    }
+    else
+    {
+        childLockState = STATE_LED_OFF;
+    }
+    boilingKeyState = STATE_LED_OFF;
+    teaKeyState     = STATE_LED_OFF;
+    milkKeyState    = STATE_LED_OFF;
+    normalKeyState  = STATE_LED_OFF;
+    switch (l_sys.j25WaterTempreture)
+    {
+        case IDELTEM:
+            normalKeyState = STATE_LED_ON;
+            break;
+        case BOILINGTEM:
+            boilingKeyState = STATE_LED_ON;
+            break;
+        case NORMALTEM:
+            normalKeyState = STATE_LED_ON;
+            break;
+        case TEATEM:
+            teaKeyState = STATE_LED_ON;
+            break;
+        case MILKTEM:
+            milkKeyState = STATE_LED_ON;
+            break;
+        default:
+            normalKeyState = STATE_LED_ON;
+            break;
+    }
+    if (g_sys.status.alarm_bitmap[1] & 0xff80)
+    {
+        fetchKeyState = STATE_LED_ON;
+    }
+    else
+    {
+        fetchKeyState = STATE_LED_OFF;
+    }
+    if (l_sys.j25AutomaticCleanState == 7)
+    {
+        cleanKeyState = STATE_LED_ON;
+    }
+    else
+    {
+        cleanKeyState = STATE_LED_OFF;
+    }
+    makeWaterGreenState = STATE_LED_OFF;
+    loopBlueState       = STATE_LED_OFF;
+    loopGreenState      = STATE_LED_OFF;
+    cleanGreenState     = STATE_LED_OFF;
+    if (l_sys.j25WaterMakeState)
+    {
+        makeWaterBlueState = STATE_LED_ON;
+    }
+    else
+    {
+        makeWaterBlueState = STATE_LED_OFF;
+    }
+    loopRedState = STATE_LED_OFF;
+    if (l_sys.j25AutomaticCleanState)
+    {
+        cleanBlueState = STATE_LED_ON;
+    }
+    else
+    {
+        cleanBlueState = STATE_LED_OFF;
+    }
+
+    beepState.byte = 0;
 }
 /***
  *
@@ -291,81 +354,6 @@ rxContinue:
     return;
 }
 
-void ledSendOperation(void)
-{
-    if (l_sys.j25WaterMakeState)
-    {
-        makeWaterBlueState = STATE_LED_ON;
-    }
-    else
-    {
-        makeWaterBlueState = STATE_LED_OFF;
-    }
-    if (l_sys.j25AutomaticCleanState)
-    {
-        cleanBlueState = STATE_LED_ON;
-    }
-    else
-    {
-        cleanBlueState = STATE_LED_OFF;
-    }
-    boilingKeyState = STATE_LED_OFF;
-    normalKeyState  = STATE_LED_OFF;
-    teaKeyState     = STATE_LED_OFF;
-    milkKeyState    = STATE_LED_OFF;
-    switch (l_sys.j25WaterTempreture)
-    {
-        case IDELTEM:
-            normalKeyState = STATE_LED_ON;
-            break;
-        case BOILINGTEM:
-            boilingKeyState = STATE_LED_ON;
-            break;
-        case NORMALTEM:
-            normalKeyState = STATE_LED_ON;
-            break;
-        case TEATEM:
-            teaKeyState = STATE_LED_ON;
-            break;
-        case MILKTEM:
-            milkKeyState = STATE_LED_ON;
-            break;
-        default:
-            break;
-    }
-    if (l_sys.j25ChildLockState)
-    {
-        childLockState = STATE_LED_ON;
-    }
-    else
-    {
-        childLockState = STATE_LED_OFF;
-    }
-    if (l_sys.j25AutomaticCleanState == 7)
-    {
-        cleanKeyState = STATE_LED_ON;
-    }
-    else
-    {
-        cleanKeyState = STATE_LED_OFF;
-    }
-    if (g_sys.status.alarm_bitmap[1] & 0xff80)
-    {
-        fetchKeyState = STATE_LED_ON;
-    }
-    else
-    {
-        fetchKeyState = STATE_LED_OFF;
-    }
-
-    makeWaterGreenState = STATE_LED_OFF;
-    loopBlueState       = STATE_LED_OFF;
-    loopGreenState      = STATE_LED_OFF;
-    cleanGreenState     = STATE_LED_OFF;
-    loopRedState        = STATE_LED_OFF;
-
-    beepState.byte = 0;
-}
 rt_uint8_t *getRegData(void)
 {
     rt_uint8_t temp[12];
@@ -429,6 +417,25 @@ static rt_uint8_t dataRepare(rt_uint8_t *buff)
 repareExit:
     return (*(buff + 3) + 5);
 }
+/* 接收数据回调函数 */
+static rt_err_t uart_input(rt_device_t dev, rt_size_t size)
+{
+    struct rx_msg msg;
+    rt_err_t result = RT_EOK;
+    msg.dev         = dev;
+    msg.size        = size;
+
+    /* 从串口读取数据*/
+
+    result = rt_mq_send(&rx_mq, &msg, sizeof(msg));
+    if (result == -RT_EFULL)
+    {
+        /* 消息队列满 */
+        rt_kprintf("message queue full！\n");
+    }
+
+    return result;
+}
 static void serial_thread_entry(void *parameter)
 {
     struct rx_msg msg;
@@ -444,6 +451,10 @@ static void serial_thread_entry(void *parameter)
         result = rt_mq_recv(&rx_mq, &msg, sizeof(msg), 1000);
         if (result == RT_EOK)
         {
+            rx_length = rt_device_read(msg.dev, 0, rxBuff + rxCount, RT_SERIAL_RB_BUFSZ - rxCount);
+            rxCount += rx_length;
+            receiveProtocol();
+
             if (ledkeyRecOK)
             {
                 rx_length = dataRepare(txBuff);

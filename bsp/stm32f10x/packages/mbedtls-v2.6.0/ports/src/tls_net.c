@@ -19,7 +19,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #include <rtthread.h>
-#include <time.h>
+#include <sys/time.h>
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -65,7 +65,7 @@ static int wsa_init_done = 0;
 #include <netdb.h>
 
 #include <rtthread.h>
-
+#include "dfs_posix.h"
 #define __socklen_t_defined
 
 /* input flags for struct addrinfo */

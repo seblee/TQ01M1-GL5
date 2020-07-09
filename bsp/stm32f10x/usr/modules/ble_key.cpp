@@ -42,8 +42,8 @@
 #endif
 
 rt_uint8_t recOK                = 0;
-static rt_uint8_t tx_buffer[20] = {1, 2, 3, 4, 5, 0, 7, 8, 9, 20};
-static rt_uint8_t rx_buffer[20] = {20, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+static rt_uint8_t tx_buffer[30] = {0};
+static rt_uint8_t rx_buffer[30] = {0};
 extern const rt_uint8_t protocolHeader[2];
 
 #define PARA_ADDR_START 64
@@ -55,6 +55,7 @@ static rt_uint8_t regMap[PARA_NUM + STATE_NUM][14] = {0};
 
 static rt_uint16_t segmentValue[3]    = {0};
 static rt_uint16_t segmentValueBak[3] = {0xffff};
+#define WATERTEMPRETURE segmentValue[2]
 /*******************************************************************************/
 extern local_reg_st l_sys;
 extern sys_reg_st g_sys;
@@ -90,7 +91,7 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
 
     for (rt_uint8_t i = 0; i < KEYBYTENUM; i++)
     {
-        keyUpState[i].byte = ~(keyState + i)->byte;
+        keyUpState[i].byte = ~((keyState + i)->byte);
         keyUpTrg[i].byte   = keyUpState[i].byte & (keyUpState[i].byte ^ k_Upcount[i]);
         k_Upcount[i]       = keyUpState[i].byte;
     }
@@ -98,17 +99,17 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
     if (boilingKeyTrg)
     {
         l_sys.j25WaterTempreture = BOILINGTEM;
-        segmentValue[2]          = g_sys.config.ComPara.j25BoilingTempreture;
+        WATERTEMPRETURE          = g_sys.config.ComPara.j25BoilingTempreture;
     }
     if (normalKeyTrg)
     {
         l_sys.j25WaterTempreture = NORMALTEM;
-        segmentValue[2]          = 25;
+        WATERTEMPRETURE          = 25;
     }
     if (teaKeyTrg)
     {
         l_sys.j25WaterTempreture = TEATEM;
-        segmentValue[2]          = g_sys.config.ComPara.j25TeaTempreture;
+        WATERTEMPRETURE          = g_sys.config.ComPara.j25TeaTempreture;
     }
     if (cleanKeyTrg)
     {
@@ -120,7 +121,7 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
     if (milkKeyTrg)
     {
         l_sys.j25WaterTempreture = MILKTEM;
-        segmentValue[2]          = g_sys.config.ComPara.j25MilkTempreture;
+        WATERTEMPRETURE          = g_sys.config.ComPara.j25MilkTempreture;
     }
     if (chlidKeyTrg)
     {
@@ -171,19 +172,22 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
 }
 void operateRxData(rt_uint8_t *rxData)
 {
-    if (getCheckSum(rxData) == *(rxData + *(rxData + 3) + 4))
+    rt_uint8_t iudex    = *(rxData + 3) + 4;
+    rt_uint8_t checkSum = *(rxData + iudex);
+    rt_uint8_t CMD      = *(rxData + 2);
+    if (getCheckSum(rxData) == checkSum)
     {
-        switch (*(rxData + 2))
+        switch (CMD)
         {
             case CMD_IDEL:
                 break;
-            case CMD_KEY: {
+            case CMD_KEY:
                 keyState[0].byte = *(rxData + 4);
                 keyState[1].byte = *(rxData + 5);
                 keyState[2].byte = *(rxData + 6);
                 keyRecOperation(keyState);
                 break;
-            }
+
             case CMD_LED:
                 break;
             case CMD_REG_UP:
@@ -345,7 +349,7 @@ static void caculateLed(void)
 static rt_uint8_t dataRepare(rt_uint8_t *buff)
 {
     rt_uint8_t *regPoint = RT_NULL;
-    rt_memcpy(tx_buffer, protocolHeader, 2);
+    rt_memcpy(buff, protocolHeader, 2);
 
     if (BLEON)
     {
@@ -364,17 +368,15 @@ static rt_uint8_t dataRepare(rt_uint8_t *buff)
         *(buff + 2) = CMD_SEGMENT;
         *(buff + 3) = 6;
         rt_memcpy(buff + 4, segmentValue, 6);
-        *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
         rt_memcpy(segmentValueBak, segmentValue, 6);
         goto repareExit;
     }
     if (!PARAOK)
     {
-        *(buff + 2)               = CMD_PARA;
-        *(buff + 3)               = 2;
-        *(buff + 4)               = keyBeepMask[0];
-        *(buff + 5)               = keyBeepMask[1];
-        *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
+        *(buff + 2) = CMD_PARA;
+        *(buff + 3) = 2;
+        *(buff + 4) = keyBeepMask[0];
+        *(buff + 5) = keyBeepMask[1];
         goto repareExit;
     }
 
@@ -384,45 +386,42 @@ static rt_uint8_t dataRepare(rt_uint8_t *buff)
         *(buff + 2) = CMD_LED;
         *(buff + 3) = 8;
         *(buff + 4) = beepState.byte;
-        for (len = 0; len < (*(buff + 3) - 1); len++)
+        for (len = 0; len < 7; len++)
         {
             *(buff + 5 + len) = ledState[len].byte;
         }
-        *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
         goto repareExit;
     }
 
 repareExit:
+    *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
     return (*(buff + 3) + 5);
 }
 void ledDataInit(void)
 {
     l_sys.j25WaterTempreture = NORMALTEM;
-    segmentValue[2]          = 25;
+    WATERTEMPRETURE          = 25;
 }
 
 static void i2c_thread_entry(void *para)
 {
+    static rt_uint8_t len = 0;
     rt_kprintf("*************start ledkey thread***********\r\n");
     rt_thread_delay(5000);
     ledDataInit();
     while (1)
     {
-        static rt_uint8_t errFlag = 0;
-        rt_uint8_t len;
         /* 调用I2C设备接口传输数据 */
-        if (errFlag == 0)
+        if (len == 0)
         {
             len = dataRepare(tx_buffer);
         }
-        if (i2c_write(I2C_ADDRESS, tx_buffer, len) == 1)
+        if (i2c_write(I2C_ADDRESS, tx_buffer, 20) == 1)
         {
-            errFlag = 0;
-            // rt_kprintf("i2c_write OK \n");
+            len = 0;
         }
         else
         {
-            errFlag = 1;
             rt_thread_delay(rt_tick_from_millisecond(1000));
             rt_kprintf("i2c_write err \n");
             continue;
@@ -461,7 +460,7 @@ int i2cBleThreadInit(void)
 
 #endif
     /* 创建 i2c 线程 */
-    rt_thread_t thread = rt_thread_create("i2c", i2c_thread_entry, RT_NULL, 4096, 25, 10);
+    rt_thread_t thread = rt_thread_create("bleKey", i2c_thread_entry, RT_NULL, 512, 8, 10);
     /* 创建成功则启动线程 */
     if (thread != RT_NULL)
     {

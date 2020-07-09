@@ -1459,7 +1459,7 @@ void j25PureWaterOut(void)
     }
 }
 
-void hotWaterOut(void)
+void j25HotWaterOut(void)
 {
     static uint8_t hotWaterOutState = 0;
     static uint8_t u8HeatNum        = 0;
@@ -1473,11 +1473,8 @@ void hotWaterOut(void)
         hotWaterOutState        = 1;
         l_sys.j25ChildLockState = g_sys.config.ComPara.j25ChildLockTime * 2;  // T3
     }
-    else
-    {
-        if (hotWaterOutState == 1)
-            hotWaterOutState = 0;
-    }
+    if (!fetchKeyRestain)
+        hotWaterOutState = 0;
 
     if (hotWaterOutState == 1)
     {
@@ -1501,13 +1498,13 @@ void hotWaterOut(void)
                 switch (l_sys.j25WaterTempreture)
                 {
                     case IDELTEM:
-                        u8Temp = 28;  //常温
+                        u8Temp = 25;  //常温
                         break;
                     case BOILINGTEM:
                         u8Temp = g_sys.config.ComPara.j25BoilingTempreture;  // boiling
                         break;
                     case NORMALTEM:
-                        u8Temp = 28;  //常温
+                        u8Temp = 25;  //常温
                         break;
                     case TEATEM:
                         u8Temp = g_sys.config.ComPara.j25TeaTempreture;  // 65℃
@@ -1516,7 +1513,7 @@ void hotWaterOut(void)
                         u8Temp = g_sys.config.ComPara.j25MilkTempreture;  // 45℃
                         break;
                     default:
-                        u8Temp = 28;  //常温
+                        u8Temp = 25;  //常温
                         break;
                 }
                 if (Heat_Send(HEAT_WRITEPARA, OPEN_HEAT, u8Temp, 5000))
@@ -1573,7 +1570,7 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
 
     j25PureWaterOut();
 
-    hotWaterOut();
+    j25HotWaterOut();
 
     j25DrinkTank();
 
@@ -1583,6 +1580,7 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
 
     j25OutPutDO();
 
-    req_exe_log("watermake:%d,Clean:%d,DrinkTank:%d,Collect:%d", l_sys.j25WaterMakeState, l_sys.j25AutomaticCleanState,
-                l_sys.j25DrinkTankState, l_sys.j25WaterCollectState);
+    // req_exe_log("watermake:%d,Clean:%d,DrinkTank:%d,Collect:%d", l_sys.j25WaterMakeState,
+    // l_sys.j25AutomaticCleanState,
+    //             l_sys.j25DrinkTankState, l_sys.j25WaterCollectState);
 }

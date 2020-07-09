@@ -1633,8 +1633,7 @@ static uint16_t acl25(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL2
 static uint16_t acl26(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL3
 {
     static rt_uint8_t waterlevel3;
-    static rt_uint8_t aclCount = 0;
-    rt_uint16_t value          = 0;
+    static rt_uint8_t aclCount = 0; 
 
     waterlevel3 = j25GetFloatBall3();
     if ((waterlevel3 >= FLOATBALLH) && (waterlevel3 < (FLOATBALLH | FLOATBALLM | FLOATBALLL)))
@@ -1642,7 +1641,7 @@ static uint16_t acl26(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL3
         if (aclCount < 20)
         {
             aclCount++;
-            return (ALARM_ACL_CLEARED);
+            return (ALARM_ACL_CLEARED); 
         }
         else
         {

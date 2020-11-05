@@ -119,6 +119,14 @@ typedef struct
 
 typedef struct
 {
+    uint16_t WaterTemperature;  //出水温度
+    uint8_t OutWater;           //出水
+    uint8_t ChildLock;          //童锁
+    uint8_t Mute;               //静音
+} Key_st;
+
+typedef struct
+{
     int16_t require[REQ_MAX_CNT][REQ_MAX_LEVEL];
     uint16_t bitmap[2][BITMAP_MAX_CNT];
     int16_t ao_list[AO_MAX_CNT][BITMAP_MAX_CNT];
@@ -182,6 +190,9 @@ typedef struct
     uint16_t j25AuxiliaryBoardDO;
     uint16_t j25AuxiliaryBoardDI;
     uint16_t j25AuxiliaryBoardAI;
+    uint8_t WaterTemperature;  //出水温度
+    Key_st LedKey;             //按键
+
 } local_reg_st;
 
 enum

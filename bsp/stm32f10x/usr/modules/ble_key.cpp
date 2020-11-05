@@ -41,10 +41,12 @@
 #define I2C_DEVICE_NAME "i2c1"
 #endif
 
-rt_uint8_t recOK                = 0;
-static rt_uint8_t tx_buffer[30] = {0};
-static rt_uint8_t rx_buffer[30] = {0};
-extern const rt_uint8_t protocolHeader[2];
+#define BUFFMAX 22
+
+rt_uint8_t recOK                     = 0;
+static rt_uint8_t tx_buffer[BUFFMAX] = {1, 2, 3, 4, 5, 0, 7, 8, 9, 20};
+static rt_uint8_t rx_buffer[BUFFMAX] = {20, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+const rt_uint8_t protocolHeader[2]   = {0xff, 0xa5};
 
 #define PARA_ADDR_START 64
 #define PARA_NUM 22
@@ -60,22 +62,33 @@ static rt_uint16_t segmentValueBak[3] = {0xffff};
 extern local_reg_st l_sys;
 extern sys_reg_st g_sys;
 /*************************Variable declaration******************************************************/
+_TKS_FLAGA_type bleKeyFlag = {0};
+#define PARACHANGEFLAG bleKeyFlag.bits.b0
+#define CLILDLOCKWARNFLAG bleKeyFlag.bits.b0
+
 _TKS_FLAGA_type keyState[KEYBYTENUM];
 _TKS_FLAGA_type keyUpState[KEYBYTENUM];
 volatile _TKS_FLAGA_type keyTrg[KEYBYTENUM];
 volatile _TKS_FLAGA_type keyUpTrg[KEYBYTENUM];
-const rt_uint8_t keyBeepMask[2] = {0x7c, 0x03};
+
+#define SHOTBEEPMASK 0x7e
+#define LONGBEEPMASK 0x02
+rt_uint8_t keyBeepMask[2]    = {SHOTBEEPMASK, LONGBEEPMASK};
+rt_uint8_t keyBeepMaskBak[2] = {0};
 
 _USR_FLAGA_type ledState[7];
 
-_BEEP_STATE beepState = {0, 0, 0};
-rt_uint8_t beepCount  = 0;
+_BEEP_STATE beepState     = {0, 0, 0};
+rt_uint8_t beepShortCount = 0;
+rt_uint8_t beepLongCount  = 0;
 /****************************************************************************/
 rt_uint8_t getCheckSum(rt_uint8_t *data);
 void keyRecOperation(_TKS_FLAGA_type *keyState);
 void operateRxData(rt_uint8_t *rxData);
 rt_uint8_t *getRegData(void);
 static void caculateLed(void);
+static void keyProcess(void);
+static void waterOutOpt(uint8_t outWaterval);
 /****************************************************************************/
 
 void keyRecOperation(_TKS_FLAGA_type *keyState)
@@ -91,25 +104,33 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
 
     for (rt_uint8_t i = 0; i < KEYBYTENUM; i++)
     {
-        keyUpState[i].byte = ~((keyState + i)->byte);
+        keyUpState[i].byte = ~(keyState + i)->byte;
         keyUpTrg[i].byte   = keyUpState[i].byte & (keyUpState[i].byte ^ k_Upcount[i]);
         k_Upcount[i]       = keyUpState[i].byte;
     }
-
-    if (boilingKeyTrg)
+    if (l_sys.OutWater_Flag == WATER_NO)
     {
-        l_sys.j25WaterTempreture = BOILINGTEM;
-        WATERTEMPRETURE          = g_sys.config.ComPara.j25BoilingTempreture;
-    }
-    if (normalKeyTrg)
-    {
-        l_sys.j25WaterTempreture = NORMALTEM;
-        WATERTEMPRETURE          = 25;
-    }
-    if (teaKeyTrg)
-    {
-        l_sys.j25WaterTempreture = TEATEM;
-        WATERTEMPRETURE          = g_sys.config.ComPara.j25TeaTempreture;
+        //短按
+        if (boilingKeyTrg)  //开水
+        {
+            l_sys.LedKey.WaterTemperature = BOILINGTEM;
+            l_sys.LedKey.WaterTemperature |= KEY_TEMP;
+        }
+        if (normalKeyTrg)  //常温水
+        {
+            l_sys.LedKey.WaterTemperature = NORMALTEM;
+            l_sys.LedKey.WaterTemperature |= KEY_TEMP;
+        }
+        if (teaKeyTrg)  //泡茶
+        {
+            l_sys.LedKey.WaterTemperature = TEATEM;
+            l_sys.LedKey.WaterTemperature |= KEY_TEMP;
+        }
+        if (milkKeyTrg)  //泡奶
+        {
+            l_sys.LedKey.WaterTemperature = MILKTEM;
+            l_sys.LedKey.WaterTemperature |= KEY_TEMP;
+        }
     }
     if (cleanKeyTrg)
     {
@@ -118,18 +139,27 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
             l_sys.j25AutomaticCleanState = 0;
         }
     }
-    if (milkKeyTrg)
-    {
-        l_sys.j25WaterTempreture = MILKTEM;
-        WATERTEMPRETURE          = g_sys.config.ComPara.j25MilkTempreture;
-    }
-    if (chlidKeyTrg)
-    {
-    }
-    if (fetchKeyTrg)
+
+    if (chlidKeyTrg)  //童锁
     {
     }
 
+    if (fetchKeyTrg)  //出水
+    {
+        if ((sys_get_remap_status(WORK_MODE_STS_REG_NO, OUTWATER_STS_BPOS) == TRUE))  // Water out
+            waterOutOpt(FALSE);
+        else
+        {
+            if ((l_sys.LedKey.WaterTemperature != NORMALTEM) && (l_sys.LedKey.ChildLock == FALSE) &&
+                (l_sys.LedKey.OutWater == FALSE))
+            {
+                beepShortCount    = 3;
+                CLILDLOCKWARNFLAG = 1;
+            }
+        }
+    }
+
+    //长按
     if (boilingKeyRestainTrg)
     {
     }
@@ -152,15 +182,37 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
 
     if (chlidKeyRestainTrg)
     {
-        if (l_sys.j25ChildLockState == 0)
+        if ((l_sys.LedKey.WaterTemperature & 0xff) != NORMALTEM)
         {
-            l_sys.j25ChildLockState = g_sys.config.ComPara.j25ChildLockTime * 2;
+            l_sys.LedKey.ChildLock = TRUE;
+            rt_kprintf("l_sys.LedKey.ChildLock = TRUE\n");
         }
     }
-
     if (fetchKeyRestainTrg)
     {
+        if (WaterOut_level() == TRUE)
+        {
+            if (l_sys.LedKey.WaterTemperature == NORMALTEM)  //常温水，直接出
+            {
+                waterOutOpt(TRUE);
+            }
+            else
+            {
+                if (l_sys.LedKey.ChildLock == TRUE)  //需要解锁
+                {
+                    waterOutOpt(TRUE);
+                }
+                else
+                {
+                    waterOutOpt(TRUE);
+                }
+            }
+        }
     }
+    if (fetchKeyRestain)
+    {
+    }
+
     if (BLEON)
     {
     }
@@ -169,25 +221,35 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
         rt_memset(regMap, 0, sizeof(regMap));
         rt_kprintf("BLEON\n");
     }
+    if (BLEINITDONE)
+    {
+    }
+    if (BLEINITDONETrg)
+    {
+        rt_kprintf("BLEINITDONETrg\n");
+    }
+    //按键逻辑处理
+    keyProcess();
 }
 void operateRxData(rt_uint8_t *rxData)
 {
-    rt_uint8_t iudex    = *(rxData + 3) + 4;
-    rt_uint8_t checkSum = *(rxData + iudex);
-    rt_uint8_t CMD      = *(rxData + 2);
-    if (getCheckSum(rxData) == checkSum)
+    if ((*(rxData + 3) + 5) > BUFFMAX)
     {
-        switch (CMD)
+        return;
+    }
+    if (getCheckSum(rxData) == *(rxData + *(rxData + 3) + 4))
+    {
+        switch (*(rxData + 2))
         {
             case CMD_IDEL:
                 break;
-            case CMD_KEY:
+            case CMD_KEY: {
                 keyState[0].byte = *(rxData + 4);
                 keyState[1].byte = *(rxData + 5);
                 keyState[2].byte = *(rxData + 6);
                 keyRecOperation(keyState);
                 break;
-
+            }
             case CMD_LED:
                 break;
             case CMD_REG_UP:
@@ -244,6 +306,10 @@ void operateRxData(rt_uint8_t *rxData)
 rt_uint8_t getCheckSum(rt_uint8_t *data)
 {
     rt_uint8_t checkSum = 0;
+    if ((*(data + 3) + 4) > (BUFFMAX - 1))
+    {
+        return 0;
+    }
     for (rt_uint8_t i = 0; i < (*(data + 3) + 4); i++)
     {
         checkSum += *(data + i);
@@ -272,19 +338,27 @@ rt_uint8_t *getRegData(void)
 
 static void caculateLed(void)
 {
-    if (l_sys.j25ChildLockState)
+    if (CLILDLOCKWARNFLAG)
     {
-        childLockState = STATE_LED_ON;
+        childLockState    = STATE_LED_FLASH_3_T;
+        CLILDLOCKWARNFLAG = 0;
     }
     else
     {
-        childLockState = STATE_LED_OFF;
+        if (l_sys.LedKey.ChildLock)
+        {
+            childLockState = STATE_LED_ON;
+        }
+        else
+        {
+            childLockState = STATE_LED_OFF;
+        }
     }
     boilingKeyState = STATE_LED_OFF;
     teaKeyState     = STATE_LED_OFF;
     milkKeyState    = STATE_LED_OFF;
     normalKeyState  = STATE_LED_OFF;
-    switch (l_sys.j25WaterTempreture)
+    switch (l_sys.LedKey.WaterTemperature & 0x00ff)
     {
         case IDELTEM:
             normalKeyState = STATE_LED_ON;
@@ -324,7 +398,6 @@ static void caculateLed(void)
     makeWaterGreenState = STATE_LED_OFF;
     loopBlueState       = STATE_LED_OFF;
     loopGreenState      = STATE_LED_OFF;
-    cleanGreenState     = STATE_LED_OFF;
     if (l_sys.j25WaterMakeState)
     {
         makeWaterBlueState = STATE_LED_ON;
@@ -342,16 +415,121 @@ static void caculateLed(void)
     {
         cleanBlueState = STATE_LED_OFF;
     }
+    cleanGreenState = STATE_LED_OFF;
 
     beepState.byte = 0;
+    BEEPSHORT      = beepShortCount;
+    BEEPLONG       = beepLongCount;
+    beepLongCount  = 0;
+    beepShortCount = 0;
 }
 
+//按键处理
+static void keyProcess(void)
+{
+    extern local_reg_st l_sys;
+    uint8_t u8Temp;
+    //出水温度处理
+    if (l_sys.LedKey.WaterTemperature & KEY_TEMP)
+    {
+        rt_uint16_t u16HotWater_TempBak = g_sys.config.ComPara.u16HotWater_Temp;
+        u8Temp                          = l_sys.LedKey.WaterTemperature & (~KEY_TEMP);
+        l_sys.LedKey.WaterTemperature &= (~KEY_TEMP);
+        switch (u8Temp)
+        {
+            case BOILINGTEM: {
+                g_sys.config.ComPara.u16HotWater_Temp = 99;
+                keyBeepMask[0] |= 0x01;
+                keyBeepMask[1] |= 0x01;
+                break;
+            }
+            case TEATEM: {
+                g_sys.config.ComPara.u16HotWater_Temp = 85;
+                keyBeepMask[0] |= 0x01;
+                keyBeepMask[1] |= 0x01;
+                break;
+            }
+            case MILKTEM: {
+                g_sys.config.ComPara.u16HotWater_Temp = 45;
+                keyBeepMask[0] |= 0x01;
+                keyBeepMask[1] |= 0x01;
+                break;
+            }
+            case NORMALTEM: {
+                g_sys.config.ComPara.u16HotWater_Temp = 25;
+                keyBeepMask[0] &= ~0x01;
+                keyBeepMask[1] &= ~0x01;
+                break;
+            }
+            default: {
+                g_sys.config.ComPara.u16HotWater_Temp = 25;
+                keyBeepMask[0] &= ~0x01;
+                keyBeepMask[1] &= ~0x01;
+                break;
+            }
+        }
+        if (u16HotWater_TempBak != g_sys.config.ComPara.u16HotWater_Temp)
+        {
+            RAM_Write_Reg(EE_HOTTEMP, g_sys.config.ComPara.u16HotWater_Temp, 1);
+        }
+    }
+    if ((l_sys.LedKey.WaterTemperature == NORMALTEM) || (l_sys.LedKey.ChildLock) || (l_sys.LedKey.OutWater))
+    {
+        keyBeepMask[0] |= 0x02;
+    }
+    else
+    {
+        keyBeepMask[0] &= ~0x02;
+    }
+
+    if (l_sys.LedKey.Mute == TRUE)
+    {
+        if (g_sys.config.ComPara.LN.u16LN_Enable != 1)
+        {
+            g_sys.config.ComPara.LN.u16LN_Enable = 1;
+            RAM_Write_Reg(106, g_sys.config.ComPara.LN.u16LN_Enable, 1);
+        }
+    }
+    else
+    {
+        if (g_sys.config.ComPara.LN.u16LN_Enable != 0)
+        {
+            g_sys.config.ComPara.LN.u16LN_Enable = 0;
+            RAM_Write_Reg(106, g_sys.config.ComPara.LN.u16LN_Enable, 1);
+        }
+    }
+    return;
+}
+/**
+ * @brief
+ * @param  outWaterval      My Param doc
+ */
+static void waterOutOpt(uint8_t outWaterval)
+{
+    //出水处理
+    if (outWaterval == TRUE)
+    {
+        g_sys.config.ComPara.u16Water_Mode = WATER_HEAT;
+        g_sys.config.ComPara.u16Water_Flow = 5000;
+    }
+    else
+    {
+        g_sys.config.ComPara.u16Water_Mode = 0;
+        g_sys.config.ComPara.u16Water_Flow = 0;
+    }
+}
+
+/**
+ * @brief
+ * @param  buff             data buff
+ * @return rt_uint8_t
+ */
 static rt_uint8_t dataRepare(rt_uint8_t *buff)
 {
     rt_uint8_t *regPoint = RT_NULL;
-    rt_memcpy(buff, protocolHeader, 2);
+    rt_memcpy(tx_buffer, protocolHeader, 2);
 
-    if (BLEON)
+    if (BLEON && BLEINITDONE)
     {
         regPoint = getRegData();
     }
@@ -361,6 +539,7 @@ static rt_uint8_t dataRepare(rt_uint8_t *buff)
         buff[2] = CMD_REG_UP;
         buff[3] = 14;
         rt_memcpy(&buff[4], regPoint, 14);
+        *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
         goto repareExit;
     }
     if (rt_memcmp(segmentValue, segmentValueBak, 6))
@@ -368,15 +547,18 @@ static rt_uint8_t dataRepare(rt_uint8_t *buff)
         *(buff + 2) = CMD_SEGMENT;
         *(buff + 3) = 6;
         rt_memcpy(buff + 4, segmentValue, 6);
+        *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
         rt_memcpy(segmentValueBak, segmentValue, 6);
         goto repareExit;
     }
-    if (!PARAOK)
+    if ((!PARAOK) || rt_memcmp(keyBeepMask, keyBeepMaskBak, 2))
     {
+        bleKeyLog("keyBeepMask [0]:%02x [1]:%02x", keyBeepMask[0], keyBeepMask[1]);
         *(buff + 2) = CMD_PARA;
         *(buff + 3) = 2;
-        *(buff + 4) = keyBeepMask[0];
-        *(buff + 5) = keyBeepMask[1];
+        rt_memcpy((buff + 4), keyBeepMask, 2);
+        *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
+        rt_memcpy(keyBeepMaskBak, keyBeepMask, 2);
         goto repareExit;
     }
 
@@ -386,28 +568,51 @@ static rt_uint8_t dataRepare(rt_uint8_t *buff)
         *(buff + 2) = CMD_LED;
         *(buff + 3) = 8;
         *(buff + 4) = beepState.byte;
-        for (len = 0; len < 7; len++)
+        for (len = 0; len < (*(buff + 3) - 1); len++)
         {
             *(buff + 5 + len) = ledState[len].byte;
         }
+        *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
         goto repareExit;
     }
 
 repareExit:
-    *(buff + 4 + *(buff + 3)) = getCheckSum(buff);
     return (*(buff + 3) + 5);
 }
 void ledDataInit(void)
 {
-    l_sys.j25WaterTempreture = NORMALTEM;
-    WATERTEMPRETURE          = 25;
+    switch (l_sys.j25WaterTempreture)
+    {
+        case 99: {
+            l_sys.LedKey.WaterTemperature = BOILINGTEM;
+            break;
+        }
+        case 85: {
+            l_sys.LedKey.WaterTemperature = TEATEM;
+            break;
+        }
+        case 45: {
+            l_sys.LedKey.WaterTemperature = MILKTEM;
+            break;
+        }
+        case 25:
+        default: {
+            l_sys.LedKey.WaterTemperature = NORMALTEM;
+            break;
+        }
+    }
+    if ((l_sys.LedKey.WaterTemperature & 0xff) != NORMALTEM)
+    {
+        keyBeepMask[0] = SHOTBEEPMASK | 0x01;
+        keyBeepMask[1] = LONGBEEPMASK | 0x01;
+    }
 }
 
 static void i2c_thread_entry(void *para)
 {
     static rt_uint8_t len = 0;
     rt_kprintf("*************start ledkey thread***********\r\n");
-    rt_thread_delay(5000);
+    rt_thread_delay(1000);
     ledDataInit();
     while (1)
     {
@@ -416,7 +621,7 @@ static void i2c_thread_entry(void *para)
         {
             len = dataRepare(tx_buffer);
         }
-        if (i2c_write(I2C_ADDRESS, tx_buffer, 20) == 1)
+        if (i2c_write(I2C_ADDRESS, tx_buffer, len) == 1)
         {
             len = 0;
         }

@@ -1,6 +1,10 @@
 #ifndef __REQ_EXE_H__
 #define __REQ_EXE_H__
 #include "stdint.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 enum
 {
@@ -160,6 +164,9 @@ uint8_t j25GetFloatBall1(void);
 uint8_t j25GetFloatBall2(void);
 uint8_t j25GetFloatBall3(void);
 
+uint8_t WaterOut_level(void);
 #define hotWaterKey KEY1
-
+#ifdef __cplusplus
+}
+#endif
 #endif  //__REQ_EXE_H__

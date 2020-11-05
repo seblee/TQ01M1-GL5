@@ -70,13 +70,16 @@ typedef union
 } _BEEP_STATE;
 enum
 {
-    STATE_LED_OFF=0,
-    STATE_LED_ON=1,
-    STATE_LED_FLASH_2HZ=2,
-    STATE_LED_FLASH_1HZ=3,
-    STATE_LED_FLASH_0_5HZ=4,
-    STATE_LED_FLASH_2_T=5,  //闪烁两下
+    STATE_LED_OFF,
+    STATE_LED_ON,
+    STATE_LED_FLASH_2HZ,
+    STATE_LED_FLASH_1HZ,
+    STATE_LED_FLASH_0_5HZ,
+    STATE_LED_FLASH_1_T,  //闪烁一下
+    STATE_LED_FLASH_2_T,  //闪烁两下
+    STATE_LED_FLASH_3_T,  //闪烁三下
 };
+
 enum
 {
     IDELTEM,
@@ -109,6 +112,8 @@ extern volatile _TKS_FLAGA_type keyUpTrg[KEYBYTENUM];
 #define BLEONTrg keyTrg[0].bits.b0
 #define PARAOK keyState[0].bits.b1
 #define PARAOKTrg keyTrg[0].bits.b1
+#define BLEINITDONE keyState[0].bits.b2
+#define BLEINITDONETrg keyTrg[0].bits.b2
 
 #define KEY0 keyState[1].bits.b4
 #define KEY1 keyState[1].bits.b5

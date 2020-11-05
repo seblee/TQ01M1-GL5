@@ -1,7 +1,9 @@
 #ifndef __GLOBAL_VAR
 #define __GLOBAL_VAR
 #include "sys_conf.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #define MB_N_OFFSET 100  //Modbus偏移
 #define T5_OFFSET 0x1100 //T5屏寄存器偏移
 
@@ -20,7 +22,8 @@
 
 #define EE_WATER_MODE 46u
 #define EE_WATER_FLOW 47u
-#define EE_EXITWATER 50u
+#define EE_HOTTEMP 		49u
+#define EE_EXITWATER 	50u
 #define EE_DISINFECTION 51u
 
 #define EE_STORAGE 120u
@@ -46,5 +49,7 @@ uint8_t reset_runtime(uint16_t param);
 uint8_t load_factory_pram(void);
 uint16_t write_reg_map(uint16_t reg_addr, uint16_t data);
 uint16_t RAM_Write_Reg(uint16_t reg_addr, uint16_t data, uint8_t u8Num);
-
+#ifdef __cplusplus
+}
+#endif
 #endif //__GLOBAL_VAR

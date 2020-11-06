@@ -187,7 +187,8 @@ typedef struct
     uint8_t j25WaterTempreture;
     uint8_t j25ChildLockState;
     uint16_t j25WaterCollectTime;  //净化泵打开时间
-    uint16_t j25AuxiliaryBoardDO;
+    uint16_t j25AuxiliaryBoardDO0;
+    uint8_t j25AuxiliaryBoardDO1;
     uint16_t j25AuxiliaryBoardDI;
     uint16_t j25AuxiliaryBoardAI;
     uint8_t WaterTemperature;  //出水温度

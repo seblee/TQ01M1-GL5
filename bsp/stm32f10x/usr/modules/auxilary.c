@@ -6,7 +6,7 @@
  * @date
  * @version V1.0
  *************************************************
- * @brief   ±ê×¢ÏµÍ³ĞÅÏ¢
+ * @brief   æ ‡æ³¨ç³»ç»Ÿä¿¡æ¯
  ****************************************************************************
  * @attention
  * Powered By Xiaowine
@@ -30,7 +30,7 @@
 
 #define SAMPLE_UART_NAME "uart4"
 
-/* ´®¿ÚÉè±¸¾ä±ú */
+/* ä¸²å£è®¾å¤‡å¥æŸ„ */
 static rt_device_t serial;
 
 static rt_uint8_t txBuff[RT_SERIAL_RB_BUFSZ + 1] = {0xa7, 0xf3, 0xaa, 0x04, 0x06};
@@ -67,8 +67,11 @@ static void recOperation(rt_uint8_t *serialDataIn)
 static rt_uint8_t getCheckSum(rt_uint8_t *data)
 {
     rt_uint8_t checkSum = 0;
-    rt_uint8_t i;
-    for (i = 0; i < (*(data + 3) + 4); i++)
+    if ((*(data + 3) + 4) > 10)
+    {
+        return 0;
+    }
+    for (rt_uint8_t i = 0; i < (*(data + 3) + 4); i++)
     {
         checkSum += *(data + i);
     }
@@ -135,11 +138,11 @@ rxContinue:
     return;
 }
 
-/* ½ÓÊÕÊı¾İ»Øµ÷º¯Êı */
+/* æ¥æ”¶æ•°æ®å›è°ƒå‡½æ•° */
 static rt_err_t uartByteReceived(rt_device_t dev, rt_size_t size)
 {
     rt_uint32_t rx_length;
-    /* ´Ó´®¿Ú¶ÁÈ¡Êı¾İ*/
+    /* ä»ä¸²å£è¯»å–æ•°æ®*/
     rx_length = rt_device_read(dev, 0, rxBuff + rxCount, size);
     rxCount += rx_length;
     receiveProtocol();
@@ -150,10 +153,11 @@ static rt_uint8_t auxilaryDataRepare(rt_uint8_t *buff)
     rt_uint8_t len = 0;
     rt_memcpy(buff, protocolHeader, 2);
     *(buff + 2) = CMD_AUX_DO;
-    *(buff + 3) = 2;
-    *(buff + 4) = l_sys.j25AuxiliaryBoardDO >> 8;
-    *(buff + 5) = l_sys.j25AuxiliaryBoardDO & 0xff;
-    *(buff + 6) = getCheckSum(buff);
+    *(buff + 3) = 3;
+    *(buff + 4) = 0xff;  // l_sys.j25AuxiliaryBoardDO1 & 0xff;
+    *(buff + 5) = 0xff;  // l_sys.j25AuxiliaryBoardDO0 >> 8;
+    *(buff + 6) = 0xff;  // l_sys.j25AuxiliaryBoardDO0 & 0xff;
+    *(buff + 7) = getCheckSum(buff);
     len         = *(buff + 3) + 5;
     return len;
 }
@@ -178,7 +182,7 @@ int auxilaryStart(void)
 
     rt_strncpy(uart_name, SAMPLE_UART_NAME, RT_NAME_MAX);
 
-    /* ²éÕÒ´®¿ÚÉè±¸ */
+    /* æŸ¥æ‰¾ä¸²å£è®¾å¤‡ */
     serial = rt_device_find(uart_name);
     if (!serial)
     {
@@ -186,16 +190,16 @@ int auxilaryStart(void)
         return RT_ERROR;
     }
 
-    /* ÒÔ DMA ½ÓÊÕ¼°ÂÖÑ¯·¢ËÍ·½Ê½´ò¿ª´®¿ÚÉè±¸ */
+    /* ä»¥ DMA æ¥æ”¶åŠè½®è¯¢å‘é€æ–¹å¼æ‰“å¼€ä¸²å£è®¾å¤‡ */
     rt_device_open(serial, RT_DEVICE_FLAG_DMA_RX);
-    /* ÉèÖÃ½ÓÊÕ»Øµ÷º¯Êı */
+    /* è®¾ç½®æ¥æ”¶å›è°ƒå‡½æ•° */
     rt_device_set_rx_indicate(serial, uartByteReceived);
-    /* ·¢ËÍ×Ö·û´® */
+    /* å‘é€å­—ç¬¦ä¸² */
     rt_device_write(serial, 0, str, (sizeof(str) - 1));
 
-    /* ´´½¨ serial Ïß³Ì */
+    /* åˆ›å»º serial çº¿ç¨‹ */
     rt_thread_t thread = rt_thread_create("Auserial", serial_thread_entry, RT_NULL, 512, 13, 10);
-    /* ´´½¨³É¹¦ÔòÆô¶¯Ïß³Ì */
+    /* åˆ›å»ºæˆåŠŸåˆ™å¯åŠ¨çº¿ç¨‹ */
     if (thread != RT_NULL)
     {
         rt_thread_startup(thread);

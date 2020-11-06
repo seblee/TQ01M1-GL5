@@ -21,11 +21,11 @@ enum
     DO_CV_BPOS,          //冷煤制冰水阀
     DO_RSV1_BPOS,        //保留
     DO_IN1OUT2EV1_BPOS,  //出水泵//泵2
-    DO_IN1OUT2EV2_BPOS,  // DO_HWP_BPOS,  //热水出水泵
-    DO_EV1_BPOS,         // DO_PWP_BPOS,  //热水出水泵
-    DO_EV2_BPOS,         // DO_DWP_BPOS,  //净化泵//泵1
-    DO_PUREUV_BPOS,      // DO_DV_BPOS,  //杀菌泵
-    DO_PUMP3_BPOS,       // DO_FV_BPOS,// 外接进水阀,
+    DO_HWP_BPOS,         //热水出水泵
+    DO_PWP_BPOS,         //热水出水泵
+    DO_DWP_BPOS,         //净化泵//泵1
+    DO_DV_BPOS,          //杀菌泵
+    DO_FV_BPOS,          // 外接进水阀,
     DO_RSV2_BPOS,        //保留
     DO_EL1_BPOS,         //电子锁1
 

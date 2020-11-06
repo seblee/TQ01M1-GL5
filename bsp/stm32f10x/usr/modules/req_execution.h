@@ -105,14 +105,16 @@ typedef enum
     DRINKTANKEMPTY  = 3,
 } DrinkTankState_t;
 
-#define AUXILIARYDOZERO (uint16_t)0x0000
-#define AUXILIARYDO_IN1OUT2EV3 (uint16_t)(1 << 8)
-#define AUXILIARYDO_EV3 (uint16_t)(1 << 9)
-#define AUXILIARYDO_EV4 (uint16_t)(1 << 10)
-#define AUXILIARYDO_EV5 (uint16_t)(1 << 11)
-#define AUXILIARYDO_SRCUV (uint16_t)(1 << 12)
-#define AUXILIARYDO_PUMP1 (uint16_t)(1 << 13)
-#define AUXILIARYDO_PUMP2 (uint16_t)(1 << 14)
+#define AUXILIARYDO0ZERO (uint16_t)0x0000
+#define AUXILIARYDO0_EV1 (uint16_t)(1 << 8)
+#define AUXILIARYDO0_EV2 (uint16_t)(1 << 9)
+#define AUXILIARYDO0_EV3 (uint16_t)(1 << 10)
+#define AUXILIARYDO0_EV4 (uint16_t)(1 << 11)
+#define AUXILIARYDO0_EV5 (uint16_t)(1 << 12)
+#define AUXILIARYDO0_UV (uint16_t)(1 << 13)
+#define AUXILIARYDO0_PUMP1 (uint16_t)(1 << 14)
+#define AUXILIARYDO0_PUMP2 (uint16_t)(1 << 15)
+#define AUXILIARYDO1_PUMP3 (uint8_t)(1 << 0)
 
 #define AUXILIARYDI_EVFAUCET (uint16_t)0x0001
 

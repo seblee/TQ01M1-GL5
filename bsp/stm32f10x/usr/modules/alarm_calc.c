@@ -1292,7 +1292,7 @@ static uint16_t acl08(alarm_acl_status_st *acl_ptr)
         return (ALARM_ACL_CLEARED);
     }
 
-    run_time = g_sys.status.ComSta.u16Runtime[1][DO_PUREUV_BPOS];
+    run_time = g_sys.status.ComSta.u16Runtime[1][DO_DV_BPOS];
     max      = g_sys.config.alarm[ACL_UV1_OT].alarm_param;
 
     alarm_inst.alarm_sts[acl_ptr->id].alram_value = run_time;
@@ -1692,7 +1692,7 @@ static uint16_t acl28(alarm_acl_status_st *acl_ptr)  // ACL_J25_UV_TIME_OUT
         return (ALARM_ACL_CLEARED);
     }
 
-    run_time = g_sys.status.ComSta.u16Runtime[1][DO_PUREUV_BPOS];
+    run_time = g_sys.status.ComSta.u16Runtime[1][DO_DV_BPOS];
     max      = g_sys.config.alarm[ACL_UV1_OT].alarm_param;
 
     alarm_inst.alarm_sts[acl_ptr->id].alram_value = run_time;

@@ -482,22 +482,6 @@ static void keyProcess(void)
         keyBeepMask[0] &= ~0x02;
     }
 
-    if (l_sys.LedKey.Mute == TRUE)
-    {
-        if (g_sys.config.ComPara.LN.u16LN_Enable != 1)
-        {
-            g_sys.config.ComPara.LN.u16LN_Enable = 1;
-            RAM_Write_Reg(106, g_sys.config.ComPara.LN.u16LN_Enable, 1);
-        }
-    }
-    else
-    {
-        if (g_sys.config.ComPara.LN.u16LN_Enable != 0)
-        {
-            g_sys.config.ComPara.LN.u16LN_Enable = 0;
-            RAM_Write_Reg(106, g_sys.config.ComPara.LN.u16LN_Enable, 1);
-        }
-    }
     return;
 }
 /**

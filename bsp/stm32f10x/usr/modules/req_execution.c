@@ -29,73 +29,88 @@ extern sys_reg_st g_sys;
 
 /*******DO State*********/
 static rt_uint8_t PUMP1OutPut = 0;
-#define PUMP1DRINKTANK (rt_uint8_t)(1 << 0)
-#define PUMP1LIFEWATEROUT (rt_uint8_t)(1 << 1)
-
+static rt_uint8_t PUMP2OutPut = 0;
 static rt_uint8_t PUMP3OutPut = 0;
-#define PUMP3COLLECT (rt_uint8_t)(1 << 0)
-#define PUMP3PUREOUT (rt_uint8_t)(1 << 1)
-#define PUMP3DRINKTANK (rt_uint8_t)(1 << 2)
 
 static rt_uint8_t EV1OutPut = 0;
-#define EV1COLLECT (rt_uint8_t)(1 << 0)
-#define EV1DRINKTANK (rt_uint8_t)(1 << 1)
-
 static rt_uint8_t EV2OutPut = 0;
-#define EV2DRINKTANK (rt_uint8_t)(1 << 0)
-#define EV2PUREWATEROUT (rt_uint8_t)(1 << 1)
-
 static rt_uint8_t EV3OutPut = 0;
-#define EV3COLLECT (rt_uint8_t)(1 << 0)
-#define EV3DRINKTANK (rt_uint8_t)(1 << 1)
-#define EV3TRANSFORM (rt_uint8_t)(1 << 2)
+static rt_uint8_t EV4OutPut = 0;
+static rt_uint8_t EV5OutPut = 0;
 
 void j25OutPutDO(void)
 {
-    // PUMP1OutPut
-    if (PUMP1OutPut)
-    {
-        l_sys.j25AuxiliaryBoardDO |= AUXILIARYDO_PUMP1;
-    }
-    else
-    {
-        l_sys.j25AuxiliaryBoardDO &= ~AUXILIARYDO_PUMP1;
-    }
-    // PUMP3OutPut
-    if (PUMP3OutPut)
-    {
-        req_bitmap_op(DO_PUMP3_BPOS, 1);
-    }
-    else
-    {
-        req_bitmap_op(DO_PUMP3_BPOS, 0);
-    }
     // EV1OutPut
     if (EV1OutPut)
     {
-        req_bitmap_op(DO_EV1_BPOS, 1);
+        l_sys.j25AuxiliaryBoardDO0 |= AUXILIARYDO0_EV1;
     }
     else
     {
-        req_bitmap_op(DO_EV1_BPOS, 0);
+        l_sys.j25AuxiliaryBoardDO0 &= ~AUXILIARYDO0_EV1;
     }
     // EV2OutPut
     if (EV2OutPut)
     {
-        req_bitmap_op(DO_EV2_BPOS, 1);
+        l_sys.j25AuxiliaryBoardDO0 |= AUXILIARYDO0_EV2;
     }
     else
     {
-        req_bitmap_op(DO_EV2_BPOS, 0);
+        l_sys.j25AuxiliaryBoardDO0 &= ~AUXILIARYDO0_EV2;
     }
     // EV3OutPut
     if (EV3OutPut)
     {
-        l_sys.j25AuxiliaryBoardDO |= AUXILIARYDO_EV3;
+        l_sys.j25AuxiliaryBoardDO0 |= AUXILIARYDO0_EV3;
     }
     else
     {
-        l_sys.j25AuxiliaryBoardDO &= ~AUXILIARYDO_EV3;
+        l_sys.j25AuxiliaryBoardDO0 &= ~AUXILIARYDO0_EV3;
+    }
+    // EV4OutPut
+    if (EV4OutPut)
+    {
+        l_sys.j25AuxiliaryBoardDO0 |= AUXILIARYDO0_EV4;
+    }
+    else
+    {
+        l_sys.j25AuxiliaryBoardDO0 &= ~AUXILIARYDO0_EV4;
+    }
+    // EV5OutPut
+    if (EV5OutPut)
+    {
+        l_sys.j25AuxiliaryBoardDO0 |= AUXILIARYDO0_EV5;
+    }
+    else
+    {
+        l_sys.j25AuxiliaryBoardDO0 &= ~AUXILIARYDO0_EV5;
+    }
+    // PUMP1OutPut
+    if (PUMP1OutPut)
+    {
+        l_sys.j25AuxiliaryBoardDO0 |= AUXILIARYDO0_PUMP1;
+    }
+    else
+    {
+        l_sys.j25AuxiliaryBoardDO0 &= ~AUXILIARYDO0_PUMP1;
+    }
+    // PUMP2OutPut
+    if (PUMP2OutPut)
+    {
+        l_sys.j25AuxiliaryBoardDO0 |= AUXILIARYDO0_PUMP2;
+    }
+    else
+    {
+        l_sys.j25AuxiliaryBoardDO0 &= ~AUXILIARYDO0_PUMP2;
+    }
+    // PUMP3OutPut
+    if (PUMP3OutPut)
+    {
+        l_sys.j25AuxiliaryBoardDO1 |= AUXILIARYDO1_PUMP3;
+    }
+    else
+    {
+        l_sys.j25AuxiliaryBoardDO1 &= ~AUXILIARYDO1_PUMP3;
     }
 }
 
@@ -818,20 +833,6 @@ enum
     FC_LW = 0x10,
     FC_AL = 0x80,  //告警
 };
-//饮水箱低水位判断
-uint8_t WaterOut_level(void)
-{
-    rt_uint8_t ballLevel = 0;
-    ballLevel            = j25GetFloatBall3();
-    if (ballLevel & FLOATBALLL)
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
-}
 
 uint8_t Sys_Get_Storage_Signal(void)
 {
@@ -961,6 +962,23 @@ void Restart_DIS_exe(void)
 
     return;
 }
+/**
+ * @brief   饮水箱低水位判断
+ * @return TRUE:达到低水位 FALSE:未达到低水位
+ */
+uint8_t WaterOut_level(void)
+{
+    rt_uint8_t ballLevel = 0;
+    ballLevel            = j25GetFloatBall3();
+    if (ballLevel & FLOATBALLL)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
 uint8_t j25GetFloatBall1(void)
 {
     uint8_t Water_level = 0;
@@ -992,207 +1010,51 @@ uint8_t j25GetFloatBall2(void)
 uint8_t j25GetFloatBall3(void)
 {
     uint8_t Water_level = 0;
-    if (sys_get_di_sts(DI_FLOAT3_H_BPOS) == 0)
+
+    if (l_sys.j25AuxiliaryBoardDI & (1 << 5))  // ball high
     {
         Water_level |= FLOATBALLH;
     }
-    if (sys_get_di_sts(DI_FLOAT3_M_BPOS) == 0)
+    if (l_sys.j25AuxiliaryBoardDI & (1 << 4))  // ball high
     {
         Water_level |= FLOATBALLM;
     }
-    if (sys_get_di_sts(DI_FLOAT3_L_BPOS) == 0)
+    if (l_sys.j25AuxiliaryBoardDI & (1 << 6))  // ball high
     {
         Water_level |= FLOATBALLL;
     }
-
     return Water_level;
 }
 
-void j25WaterCollectStateSet(CollectState state)
-{
-    l_sys.j25WaterCollectState = state;
-}
-void j25WaterCollect(void)
-{
-    static uint16_t collectHalfCounter = 0;
-    uint8_t waterLevel2                = j25GetFloatBall2();
-    switch (l_sys.j25WaterCollectState)
-    {
-        case COLLECTIDEL:
-
-            l_sys.j25WaterCollectTime = 0;
-            EV1OutPut &= ~EV1COLLECT;
-            PUMP3OutPut &= ~PUMP3COLLECT;
-            collectHalfCounter = 0;
-            break;
-        case COLLECTHALF:
-            if (waterLevel2 & FLOATBALLL)
-            {
-                if (l_sys.j25WaterCollectTime < 0xffff)
-                {
-                    l_sys.j25WaterCollectTime++;
-                }
-                collectHalfCounter = 0;
-                EV1OutPut |= EV1COLLECT;
-                PUMP3OutPut |= PUMP3COLLECT;
-            }
-            else
-            {
-                if (collectHalfCounter < COUNT3S)
-                {
-                    collectHalfCounter++;
-                    EV1OutPut |= EV1COLLECT;
-                    PUMP3OutPut |= PUMP3COLLECT;
-                }
-                else
-                {
-                    EV1OutPut &= ~EV1COLLECT;
-                    PUMP3OutPut &= ~PUMP3COLLECT;
-                    l_sys.j25WaterCollectState = COLLECTIDEL;
-                }
-            }
-            break;
-        case COLLECTFULL:
-            if ((l_sys.j25WaterCollectTime < 0xffff) && (waterLevel2 & FLOATBALLH))
-            {
-                l_sys.j25WaterCollectTime++;
-            }
-            collectHalfCounter = 0;
-            if (waterLevel2 & FLOATBALLH)
-            {
-                EV1OutPut |= EV1COLLECT;
-                PUMP3OutPut |= PUMP3COLLECT;
-            }
-            if ((waterLevel2 & FLOATBALLL) == 0)
-            {
-                EV1OutPut &= ~EV1COLLECT;
-                PUMP3OutPut &= ~PUMP3COLLECT;
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-void j25DrinkTankStateSet(DrinkTankState_t state)
-{
-    l_sys.j25DrinkTankState = state;
-}
-void j25DrinkTank(void)
-{
-    static rt_uint32_t j25DrinkTankLoopCount    = 0;
-    static rt_uint16_t j25DrinkTankEmptyCounter = 0;
-
-    uint8_t waterLevel2 = j25GetFloatBall2();
-    uint8_t waterLevel3 = j25GetFloatBall3();
-
-    rt_uint32_t T1 = g_sys.config.ComPara.j25LoopInterval * 60 * 60 * 2;
-    rt_uint32_t T2 = g_sys.config.ComPara.j25LoopTime * 60 * 2;
-
-    switch (l_sys.j25DrinkTankState)
-    {
-        case DRINKTANKIDEL:
-        case DRINKTANKLOOP:
-            if (j25DrinkTankLoopCount < T1)
-            {
-                j25DrinkTankLoopCount++;
-                EV2OutPut &= ~EV2DRINKTANK;
-                PUMP3OutPut &= ~PUMP3DRINKTANK;
-            }
-            else if (j25DrinkTankLoopCount < (T1 + T2))
-            {  // 应有浮球判断
-                j25DrinkTankLoopCount++;
-                EV2OutPut |= EV2DRINKTANK;
-                PUMP3OutPut |= PUMP3DRINKTANK;
-            }
-            else
-            {
-                j25DrinkTankLoopCount = 0;
-            }
-            break;
-        case DRINKTANKINJECT:
-            if (waterLevel3 & FLOATBALLH)
-            {
-                l_sys.j25DrinkTankState = DRINKTANKIDEL;
-            }
-            else
-            {
-                if (waterLevel2 & FLOATBALLH)
-                {
-                    req_bitmap_op(DO_IN1OUT2EV1_BPOS, 0);
-                    EV3OutPut &= ~EV3DRINKTANK;
-                    EV1OutPut |= EV1DRINKTANK;
-                    PUMP3OutPut |= PUMP3DRINKTANK;
-                }
-                if (!(waterLevel2 & FLOATBALLL))
-                {
-                    req_bitmap_op(DO_IN1OUT2EV1_BPOS, 1);
-                    EV3OutPut |= EV3DRINKTANK;
-                    EV1OutPut &= ~EV1DRINKTANK;
-                    PUMP3OutPut &= ~PUMP3DRINKTANK;
-                }
-            }
-
-            break;
-        case DRINKTANKEMPTY:
-            if (waterLevel3 & FLOATBALLL)
-            {
-                l_sys.j25AuxiliaryBoardDO |= AUXILIARYDO_EV4;
-                PUMP1OutPut |= PUMP1DRINKTANK;
-                j25DrinkTankEmptyCounter = 0;
-            }
-            else
-            {
-                if (j25DrinkTankEmptyCounter < COUNT3S)
-                {
-                    l_sys.j25AuxiliaryBoardDO |= AUXILIARYDO_EV4;
-                    PUMP1OutPut |= PUMP1DRINKTANK;
-                    j25DrinkTankEmptyCounter++;
-                }
-                else
-                {
-                    l_sys.j25DrinkTankState = DRINKTANKIDEL;
-                    PUMP1OutPut &= ~PUMP1DRINKTANK;
-                    l_sys.j25AuxiliaryBoardDO &= ~AUXILIARYDO_EV4;
-                }
-            }
-            break;
-        default:
-            l_sys.j25DrinkTankState = DRINKTANKIDEL;
-            break;
-    }
-}
-
-void j25TransformChamberStateSet(ChamberState_t state)
-{
-    l_sys.j25TransformChamberState = state;
-}
 /**
  * @brief   抽水到转化腔
  */
 void j25InjectTransformChamber(void)
 {
-    rt_uint8_t drinkTankLevel = 0;
+    rt_uint8_t ballLevel = 0;
 
-    drinkTankLevel = j25GetFloatBall3();
-
-    if ((drinkTankLevel & FLOATBALLH) || (l_sys.j25WaterMakeState == 0))
+    ballLevel = j25GetFloatBall3();
+    if ((ballLevel & FLOATBALLH) || (l_sys.j25WaterMakeState == 0))
     {
         /**
          * @brief   关闭水泵3
          */
+        PUMP3OutPut = 0;
     }
     else
     {
         /**
          * @brief   启动水泵3
          */
+        PUMP3OutPut = 1;
     }
+
+    req_exe_log("level:%02x,EV3OutPut:%02x,wst:%02x", ballLevel, EV3OutPut, l_sys.j25WaterMakeState);
 }
 /**
- * @brief   浓缩水槽抽水
+ * @brief   浓缩水槽排水
  */
-void j25ConcentrateSink(void)
+void j25ConcentrateSinkEmpty(void)
 {
     rt_uint8_t ballLevel = 0;
 
@@ -1202,13 +1064,16 @@ void j25ConcentrateSink(void)
         /**
          * @brief   关闭水泵2
          */
+        PUMP2OutPut = 0;
     }
     else
     {
         /**
          * @brief   启动水泵2
          */
+        PUMP2OutPut = 1;
     }
+    req_exe_log("level:%02x,EV3OutPut:%02x", ballLevel, EV3OutPut);
 }
 /**
  * @brief   抽水到饮水箱
@@ -1330,110 +1195,6 @@ void j25WaterMakeLogic(void)
     }
 }
 
-// void j25AutomaticClean(void)
-// {
-//     static rt_uint16_t j25AutomaticCleanCount = 0;
-//     if (l_sys.j25AutomaticCleanState == 0)
-//     {
-//         rt_uint8_t waterLevel3 = j25GetFloatBall3();
-//         if (waterLevel3 & FLOATBALLH)
-//         {
-//             if ((l_sys.j25AutomaticCleanCount7D < g_sys.config.ComPara.j25IdelAutoCleanInterval * 24 * 60 * 60 * 2)
-//             &&
-//                 (l_sys.j25AutomaticCleanState == 0))
-//             {
-//                 l_sys.j25AutomaticCleanCount7D++;
-//             }
-//             else
-//             {
-//                 l_sys.j25AutomaticCleanCount7D = 0;
-//                 l_sys.j25AutomaticCleanState   = 0x11;
-//                 j25AutomaticCleanCount         = 0;
-//             }
-//         }
-//         else
-//         {
-//             l_sys.j25AutomaticCleanCount7D = 0;
-//         }
-//         if ((l_sys.j25AutomaticCleanCount30D < g_sys.config.ComPara.j25UsingAutoCleanInterval * 24 * 60 * 60 * 2) &&
-//             (l_sys.j25AutomaticCleanState == 0))
-//         {
-//             l_sys.j25AutomaticCleanCount30D++;
-//         }
-//         else
-//         {
-//             l_sys.j25AutomaticCleanCount30D = 0;
-//             l_sys.j25AutomaticCleanState    = 0x01;
-//             j25AutomaticCleanCount          = 0;
-//         }
-//     }
-//     else
-//     {
-//         j25AutomaticCleanCount++;
-//     }
-
-//     if ((l_sys.j25AutomaticCleanState & 0x0f) == 1)
-//     {
-//         j25TransformChamberStateSet(TRANSCHAMBEREMPTY);
-//         j25WaterCollectStateSet(COLLECTHALF);
-//         j25DrinkTankStateSet(DRINKTANKEMPTY);
-//         l_sys.j25AutomaticCleanState++;
-//     }
-//     if ((l_sys.j25AutomaticCleanState & 0x0f) == 2)
-//     {
-//         rt_uint8_t waterlevel1 = j25GetFloatBall1();
-//         if (waterlevel1 & FLOATBALLH)
-//         {
-//             l_sys.j25AutomaticCleanState++;
-//         }
-//         else
-//         {
-//             j25TransformChamberStateSet(TRANSCHAMBERINJECT);
-//         }
-//     }
-//     if ((l_sys.j25AutomaticCleanState & 0x0f) == 3)
-//     {
-//         j25TransformChamberStateSet(TRANSCHAMBERIDEL);
-//         j25DrinkTankStateSet(DRINKTANKINJECT);
-//         l_sys.j25AutomaticCleanState++;
-//         j25AutomaticCleanCount = 0;
-//     }
-//     if (((l_sys.j25AutomaticCleanState & 0x0f) == 4) && (j25AutomaticCleanCount > COUNT9M))
-//     {
-//         l_sys.j25AutomaticCleanState++;
-//         j25AutomaticCleanCount = 0;
-//         j25CompressorWork(ENABLE);
-//     }
-//     if (((l_sys.j25AutomaticCleanState & 0x0f) == 5) && (j25AutomaticCleanCount > COUNT30M))
-//     {
-//         if (l_sys.j25AutomaticCleanState & 0xf0)
-//         {
-//             l_sys.j25AutomaticCleanState = 0;
-//         }
-//         else
-//         {
-//             l_sys.j25AutomaticCleanState++;
-//             j25CompressorWork(DISABLE);
-//             j25TransformChamberStateSet(TRANSCHAMBEREMPTY);
-//             j25WaterCollectStateSet(COLLECTHALF);
-//             j25DrinkTankStateSet(DRINKTANKEMPTY);
-//         }
-//     }
-// }
-
-// void j25LifeWaterOut(void)
-// {
-//     if ((j25GetFloatBall3() & FLOATBALLL) && (l_sys.j25AuxiliaryBoardDI & AUXILIARYDI_EVFAUCET))
-//     {
-//         PUMP1OutPut |= PUMP1LIFEWATEROUT;
-//         l_sys.j25AuxiliaryBoardDO |= AUXILIARYDO_EV5;
-//     }
-//     else
-//     {
-//         PUMP1OutPut &= ~PUMP1LIFEWATEROUT;
-//         l_sys.j25AuxiliaryBoardDO &= ~AUXILIARYDO_EV5;
-//     }
-// }
 void j25PureWaterOut(void)
 {
     static uint16_t pureWaterOutCount = 0;
@@ -1449,11 +1210,8 @@ void j25PureWaterOut(void)
 
     if (l_sys.j25PureWaterOutState)
     {
-        EV2OutPut |= EV2PUREWATEROUT;
-        PUMP3OutPut |= PUMP3PUREOUT;
         if (pureWaterOutCount > T8)
         {
-            req_bitmap_op(DO_IN1OUT2EV2_BPOS, 1);
         }
         else
         {
@@ -1463,9 +1221,6 @@ void j25PureWaterOut(void)
     else
     {
         pureWaterOutCount = 0;
-        EV2OutPut &= ~EV2PUREWATEROUT;
-        PUMP3OutPut &= ~PUMP3PUREOUT;
-        req_bitmap_op(DO_IN1OUT2EV2_BPOS, 0);
     }
 }
 
@@ -1555,8 +1310,7 @@ void j25UVCtrl(void)
     if (UVState == 0)
     {
         UVState = 1;
-        req_bitmap_op(DO_PUREUV_BPOS, 1);
-        l_sys.j25AuxiliaryBoardDO |= AUXILIARYDO_SRCUV;
+        l_sys.j25AuxiliaryBoardDO0 |= AUXILIARYDO0_UV;
     }
 }
 
@@ -1594,27 +1348,18 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
     //显示屏控制
     Restart_DIS_exe();
 
+    j25InjectTransformChamber();
+    j25ConcentrateSinkEmpty();
+    // j25PumpingWaterToDrinkTank();
+    // j25WaterOut();
+    // j25DrinkWaterTankLoop();
+
     j25WaterMakeLogic();
-
-   // j25AutomaticClean();
-
-    j25WaterCollect();
-
-  //  j25LifeWaterOut();
 
     j25PureWaterOut();
 
-    j25HotWaterOut();
-
-    j25DrinkTank();
-
     j25UVCtrl();
 
-  //  j25TransformChamber();
-
+    //  j25TransformChamber();
     j25OutPutDO();
-
-    // req_exe_log("watermake:%d,Clean:%d,DrinkTank:%d,Collect:%d", l_sys.j25WaterMakeState,
-    // l_sys.j25AutomaticCleanState,
-    //             l_sys.j25DrinkTankState, l_sys.j25WaterCollectState);
 }

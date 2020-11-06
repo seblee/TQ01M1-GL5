@@ -521,7 +521,7 @@ const sts_reg_map_st status_reg_map_inst[STATUS_REG_MAP_NUM] = {
     {26, &g_sys.status.ComSta.u16Runtime[1][DO_FILLTER_ELEMENT_DUMMY_BPOS_2], 0},
     {27, &g_sys.status.ComSta.u16Runtime[1][DO_FILLTER_ELEMENT_DUMMY_BPOS_3], 0},
     {28, &g_sys.status.ComSta.u16Cumulative_Water[2], 0},
-    {29, &g_sys.status.ComSta.u16Runtime[1][DO_PUREUV_BPOS], 0},
+    {29, &g_sys.status.ComSta.u16Runtime[1][DO_DV_BPOS], 0},
     {30, NULL, 0},
     {31, &g_sys.status.ComSta.REQ_TEST[0], 0},
     {32, &g_sys.status.ComSta.REQ_TEST[1], 0},

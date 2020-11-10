@@ -388,46 +388,41 @@ uint16_t Alarm_acl_delay(uint8_t ACL_Num)
 
     switch (ACL_Num)
     {
-        case (ACL_E0):
-        case (ACL_E1):
-        case (ACL_E2):
-        case (ACL_E3):
-        case (ACL_E5):
-        case (ACL_E6):
-        case (ACL_E8):
-        case (ACL_E9):
-        case (ACL_E11):
-        case (ACL_E12): {
+        case ACL_E0:
+        case ACL_E1:
+        case ACL_E2:
+        case ACL_E3:
+        case ACL_E5:
+        case ACL_E6:
+        case ACL_E8:
+        case ACL_E9:
+        case ACL_E12:
             ACL_Delay = 5;
             break;
-        }
-        case (ACL_E4):
-        case (ACL_FAN01_OD):
-        case (ACL_HI_PRESS1): {
+        case ACL_E4:
+        case ACL_E11:
+        case ACL_FAN01_OD:
+        case ACL_HI_PRESS1:
             ACL_Delay = 3;
             break;
-        }
-        case (ACL_WATER_LEAK):
-        case (ACL_FILTER_OT):
-        case (ACL_FILTER_ELEMENT_0_OT):
-        case (ACL_FILTER_ELEMENT_1_OT):
-        case (ACL_FILTER_ELEMENT_2_OT):
-        case (ACL_E17):
-        case (ACL_FILTER_ELEMENT_4_OT):
-            //			case(ACL_UV1_OT):
-            //			case(ACL_UV2_OT):
-            {
-                ACL_Delay = 10;
-                break;
-            }
-        case (ACL_RS_NETERR): {
+        case ACL_WATER_LEAK:
+        case ACL_FILTER_OT:
+        case ACL_FILTER_ELEMENT_0_OT:
+        case ACL_FILTER_ELEMENT_1_OT:
+        case ACL_FILTER_ELEMENT_2_OT:
+        case ACL_E17:
+        case ACL_FILTER_ELEMENT_4_OT:
+        case ACL_J25_HI_TEM:
+            // case (ACL_UV1_OT):
+            // case (ACL_UV2_OT):
+            ACL_Delay = 10;
+            break;
+        case ACL_RS_NETERR:
             ACL_Delay = (g_sys.config.Platform.Restart_Delay & 0x00FF) * 60 * 2;
             break;
-        }
-        default: {
+        default:
             ACL_Delay = 5;
             break;
-        }
     }
     return ACL_Delay;
 }
@@ -1345,8 +1340,8 @@ static uint16_t acl10(alarm_acl_status_st *acl_ptr)
 static uint16_t acl11(alarm_acl_status_st *acl_ptr)
 {
     uint8_t data;
-    uint8_t index        = 4;
-    int16_t Exhaust_Temp = (int16_t)g_sys.status.ComSta.u16Ain[AI_NTC3];  //排气温度
+    int16_t Exhaust_Temp     = (int16_t)g_sys.status.ComSta.u16Ain[AI_NTC2];  //排气温度
+    static rt_uint16_t count = 0;
     // 解除 报警
     if (acl_clear(acl_ptr))
     {
@@ -1357,34 +1352,29 @@ static uint16_t acl11(alarm_acl_status_st *acl_ptr)
         return (ALARM_ACL_CLEARED);
     }
 
-    if (Exhaust_Temp > g_sys.config.ComPara.j25ExhaustWarnTempreture)
+    if (sys_get_do_sts(DO_COMP1_BPOS))
+    {
+        if (count < (2 * 60 * 2))
+        {
+            count++;
+        }
+    }
+
+    if ((Exhaust_Temp > g_sys.config.ComPara.j25ExhaustWarnTempreture) && (count >= (2 * 60 * 2)))
     {
         data = ALARM_ACL_TRIGGERED;
     }
-    else if (Exhaust_Temp > g_sys.config.ComPara.j25ExhaustWarnRelieveTempture)
+    else  // if (Exhaust_Temp > g_sys.config.ComPara.j25ExhaustWarnRelieveTempture)
     {
         data = ALARM_ACL_HOLD;
     }
-    else
-    {
-        data = ALARM_ACL_CLEARED;
-    }
-    //锁死预激活
-    if (alarm_inst.alarm_lock[index].last_state != acl_ptr->state)
-    {
-        if ((alarm_inst.alarm_lock[index].last_state == ALARM_FSM_PREACTIVE) &&
-            (acl_ptr->state == ALARM_FSM_ACTIVE))  //从预激活到激活
-        {
-            alarm_inst.alarm_lock[index].lock_time[0] = alarm_inst.alarm_lock[index].lock_time[1];
-            alarm_inst.alarm_lock[index].lock_time[1] = alarm_inst.alarm_lock[index].lock_time[2];
-            alarm_inst.alarm_lock[index].lock_time[2] = rt_tick_get();
-        }
-        alarm_inst.alarm_lock[index].last_state = acl_ptr->state;
-    }
+    // else
+    // {
+    //     data = ALARM_ACL_CLEARED;
+    // }
 
     return (data);
 }
-
 // ACL_E12
 static uint16_t acl12(alarm_acl_status_st *acl_ptr)
 {
@@ -1580,7 +1570,37 @@ static uint16_t acl22(alarm_acl_status_st *acl_ptr)
 
 static uint16_t acl23(alarm_acl_status_st *acl_ptr)  // ACL_J25_HI_TEM
 {
-    return (ALARM_ACL_CLEARED);
+    uint8_t data;
+    int16_t Exhaust_Temp     = (int16_t)g_sys.status.ComSta.u16Ain[AI_NTC2];  //排气温度
+    static rt_uint16_t count = 0;
+    // 解除 报警
+    if (acl_clear(acl_ptr))
+    {
+        return (ALARM_ACL_CLEARED);
+    }
+    if (Exhaust_Temp == ABNORMAL_VALUE)
+    {
+        return (ALARM_ACL_CLEARED);
+    }
+
+    if (sys_get_do_sts(DO_COMP1_BPOS))
+    {
+        if (count < (2 * 60 * 2))
+        {
+            count++;
+        }
+    }
+
+    if ((Exhaust_Temp > g_sys.config.ComPara.j25ExhaustWarnTempreture) && (count >= (2 * 60 * 2)))
+    {
+        data = ALARM_ACL_TRIGGERED;
+    }
+    else
+    {
+        data = ALARM_ACL_HOLD;
+    }
+
+    return (data);
 }
 static uint16_t acl24(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL1
 {
@@ -1633,7 +1653,7 @@ static uint16_t acl25(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL2
 static uint16_t acl26(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL3
 {
     static rt_uint8_t waterlevel3;
-    static rt_uint8_t aclCount = 0; 
+    static rt_uint8_t aclCount = 0;
 
     waterlevel3 = j25GetFloatBall3();
     if ((waterlevel3 >= FLOATBALLH) && (waterlevel3 < (FLOATBALLH | FLOATBALLM | FLOATBALLL)))
@@ -1641,7 +1661,7 @@ static uint16_t acl26(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL3
         if (aclCount < 20)
         {
             aclCount++;
-            return (ALARM_ACL_CLEARED); 
+            return (ALARM_ACL_CLEARED);
         }
         else
         {

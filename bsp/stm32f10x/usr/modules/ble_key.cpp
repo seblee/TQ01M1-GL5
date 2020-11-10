@@ -174,6 +174,10 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
 
     if (cleanKeyRestainTrg)
     {
+        if (l_sys.j25AutomaticCleanState == 0)
+        {
+            l_sys.j25AutomaticCleanState = 1;
+        }
     }
 
     if (milkKeyRestainTrg)
@@ -495,11 +499,13 @@ static void waterOutOpt(uint8_t outWaterval)
     {
         g_sys.config.ComPara.u16Water_Mode = WATER_HEAT;
         g_sys.config.ComPara.u16Water_Flow = 5000;
+        l_sys.LedKey.OutWater              = 1;
     }
     else
     {
         g_sys.config.ComPara.u16Water_Mode = 0;
         g_sys.config.ComPara.u16Water_Flow = 0;
+        l_sys.LedKey.OutWater              = 0;
     }
 }
 

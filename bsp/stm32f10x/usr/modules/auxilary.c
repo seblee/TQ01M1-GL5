@@ -67,9 +67,9 @@ static void recOperation(rt_uint8_t *serialDataIn)
 static rt_uint8_t getCheckSum(rt_uint8_t *data)
 {
     rt_uint8_t checkSum = 0;
-    if ((*(data + 3) + 4) > 10)
+    if ((*(data + 3) + 4) > RT_SERIAL_RB_BUFSZ)
     {
-        return 0;
+        return 0xaa;
     }
     for (rt_uint8_t i = 0; i < (*(data + 3) + 4); i++)
     {
@@ -116,6 +116,13 @@ again:
         rt_uint8_t checkSum, checkIndex, len;
         if (rxCount < rxBuff[3] + 5)
             goto rxContinue;
+        if ((rxBuff[3] + 5) > 10)
+        {
+            rt_memcpy(rxBuff, rxBuff + 2, rxCount - 2);
+            rxCount -= 2;
+            rxStep = 0;
+            goto again;
+        }
         checkSum   = getCheckSum(rxBuff);
         checkIndex = rxBuff[3] + 4;
         if (checkSum == rxBuff[checkIndex])
@@ -142,8 +149,10 @@ rxContinue:
 static rt_err_t uartByteReceived(rt_device_t dev, rt_size_t size)
 {
     rt_uint32_t rx_length;
+    rt_device_t dev1;
+    dev1 = dev;
     /* 从串口读取数据*/
-    rx_length = rt_device_read(dev, 0, rxBuff + rxCount, size);
+    rx_length = rt_device_read(dev1, 0, rxBuff + rxCount, size);
     rxCount += rx_length;
     receiveProtocol();
     return RT_EOK;
@@ -154,9 +163,9 @@ static rt_uint8_t auxilaryDataRepare(rt_uint8_t *buff)
     rt_memcpy(buff, protocolHeader, 2);
     *(buff + 2) = CMD_AUX_DO;
     *(buff + 3) = 3;
-    *(buff + 4) = 0xff;  // l_sys.j25AuxiliaryBoardDO1 & 0xff;
-    *(buff + 5) = 0xff;  // l_sys.j25AuxiliaryBoardDO0 >> 8;
-    *(buff + 6) = 0xff;  // l_sys.j25AuxiliaryBoardDO0 & 0xff;
+    *(buff + 4) = l_sys.j25AuxiliaryBoardDO1 & 0xff;
+    *(buff + 5) = l_sys.j25AuxiliaryBoardDO0 >> 8;
+    *(buff + 6) = l_sys.j25AuxiliaryBoardDO0 & 0xff;
     *(buff + 7) = getCheckSum(buff);
     len         = *(buff + 3) + 5;
     return len;

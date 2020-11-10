@@ -129,7 +129,7 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {81, &g_sys.config.general.ntc_cali[3], 0, 0xffff, 0, 2, 1, NULL},
     {82, &g_sys.config.ComPara.u16HotWater_Cali, 0, 0xffff, 0, 2, 1, NULL},
     {83, (uint16_t *)&l_sys.ao_list[AO_EC_FAN][BITMAP_MANUAL], 0, 100, 0, 0, 1, NULL},  // 147
-    {84, &g_sys.config.fan.set_speed, 0, 100, 28, 2, 1, NULL},
+    {84, &g_sys.config.fan.set_speed, 0, 100, 50, 2, 1, NULL},
     {85, NULL, 0, 3600, 0, 2, 1, NULL},
     {86, &g_sys.config.ComPara.u16ColdWater_Mode, 0, 2, 0, 2, 1, NULL},
     {87, &g_sys.config.ComPara.u16ColdWater_StartTemp, 50, 400, 150, 2, 1, ColdWater_StartTemp_Chek},

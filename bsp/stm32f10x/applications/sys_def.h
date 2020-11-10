@@ -46,9 +46,9 @@ enum
 #define CONF_REG_SID_NUM 100
 #define CONF_REG_SID_START CONF_REG_MAP_NUM - CONF_REG_SID_NUM
 // V2234
-#define VER_0 (uint16)2   //
-#define VER_1 (uint16)2   //
-#define VER_2 (uint16)34  //
+#define VER_0 (uint16)4  //
+#define VER_1 (uint16)0  //
+#define VER_2 (uint16)0  //
 
 #elif SYS_M_T10
 #define CONF_REG_MAP_NUM 300

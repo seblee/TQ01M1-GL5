@@ -176,14 +176,12 @@ typedef struct
     uint8_t u8Storage_Fsm;        //贮存状态机
     uint8_t u8ExitFill;           //注水中
     uint16_t u16Fill_Delay[3];    //注水延迟
-    uint8_t j25WaterCollectState;
-    uint8_t j25TransformChamberState;
+    uint8_t j25PumpingWaterToDrinkTankState;
     uint8_t j25WaterMakeState;
     uint8_t j25PureWaterOutState;
     uint8_t j25AutomaticCleanState;
+    uint8_t j25LoopState;
     rt_uint32_t j25AutomaticCleanCount7D;
-    rt_uint32_t j25AutomaticCleanCount30D;
-    uint8_t j25DrinkTankState;
     uint8_t j25WaterTempreture;
     uint8_t j25ChildLockState;
     uint16_t j25WaterCollectTime;  //净化泵打开时间

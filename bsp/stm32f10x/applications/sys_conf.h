@@ -15,7 +15,7 @@ enum
     DO_COMP1_BPOS = 0,   //压机1启动
     DO_COMP2_BPOS,       //压机2
     DO_RH1_BPOS,         //电加热1
-    DO_FAN_BPOS,         //内风机
+    DO_3_ENUM,           //内风机
     DO_LAMP_BPOS,        //紫外灯1,定时杀菌
     DO_WV_BPOS,          //冷煤制水阀(压机制冷)
     DO_CV_BPOS,          //冷煤制冰水阀
@@ -57,6 +57,8 @@ enum
 };
 #define DO_FILLTER_ELEMENT_DUMMY_MAX DO_FILLTER_ELEMENT_DUMMY_BPOS_3  //滤网个数
 
+#define DO_FAN_BPOS DO_EL1_BPOS
+#define DO_F24_BPOS DO_EL2_BPOS      // 24V风机,T8机组
 #define DO_FAN_LOW_BPOS DO_FAN_BPOS  //风机低档
 
 // L  双按键出水
@@ -68,11 +70,7 @@ enum
 #define DO_EV3_BPOS DO_RSV2_BPOS  //阀3
 #define DO_EV4_BPOS DO_RSV3_BPOS  //阀4
 
-#define DO_BD_BPOS DO_EL1_BPOS      //冰胆
-#define DO_BD_FAN_BPOS DO_EL2_BPOS  //冰胆风扇
-
 #define DO_UV24_BPOS DO_RSV2_BPOS  // 24V紫外灯
-#define DO_F24_BPOS DO_EL1_BPOS    // 24V风机,T8机组
 
 // application delay
 #define MODBUS_MASTER_THREAD_DELAY 500

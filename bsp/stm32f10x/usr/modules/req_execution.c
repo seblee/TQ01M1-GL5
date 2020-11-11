@@ -946,7 +946,6 @@ void Restart_DIS_exe(void)
                     u8Restart |= 0x03;
                 }
             }
-
             l_sys.u8RSInteral_Neterr = FALSE;
         }
         //需要重启
@@ -974,7 +973,6 @@ void Restart_DIS_exe(void)
     }
     // 		rt_kprintf("u8CloseTime[0]=%x,u8CloseTime[1]=%x,u16Uart_Timeout[1]=%x,u8Restarterr=%d,DI_HI_PRESS2=%d\n",
     // u8CloseTime[0],u8CloseTime[1],l_sys.u16Uart_Timeout[1],u8Restart, sys_get_di_sts(DI_HI_PRESS2_BPOS));
-
     return;
 }
 /**
@@ -1075,16 +1073,16 @@ void j25ConcentrateSinkEmpty(void)
     if (ballLevel & FLOATBALLH)
     {
         /**
-         * @brief   关闭水泵2
-         */
-        PUMP2OutPut = 0;
-    }
-    else
-    {
-        /**
          * @brief   启动水泵2
          */
         PUMP2OutPut = 1;
+    }
+    if ((ballLevel & FLOATBALLL) == 0)
+    {
+        /**
+         * @brief   关闭水泵2
+         */
+        PUMP2OutPut = 0;
     }
 }
 /**
@@ -1111,7 +1109,8 @@ void j25PumpingWaterToDrinkTank(void)
         UVOutPut |= PUMP_TO_DRINK_FLAG;
         l_sys.j25PumpingWaterToDrinkTankState = 1;
     }
-    else
+    if (((ballLevel & FLOATBALLL) == 0) || (l_sys.OutWater_Flag & WATER_NORMAL_ICE) ||
+        ((l_sys.j25AutomaticCleanState != 0) && (l_sys.j25AutomaticCleanState != 7)))
     {
         /**
          * @brief   关闭
@@ -1256,7 +1255,10 @@ void j25DrinkWaterTankEmpty(void)
         }
     }
 }
-
+/**
+ * @brief   compressor & fan state set
+ * @param  state            My Param doc
+ */
 void j25CompressorWork(FunctionalState state)
 {
     if (state)

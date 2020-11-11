@@ -37,6 +37,7 @@ static rt_uint8_t txBuff[RT_SERIAL_RB_BUFSZ + 1] = {0xa7, 0xf3, 0xaa, 0x04, 0x06
 static rt_uint8_t rxBuff[RT_SERIAL_RB_BUFSZ + 1] = {0xa7, 0xf3, 0xaa, 0x04, 0x06};
 const rt_uint8_t protocolHeader[2]               = {0xff, 0xa5};
 static rt_uint8_t rxCount                        = 0;
+static rt_uint8_t rxFlag                         = 0;
 
 extern local_reg_st l_sys;
 
@@ -152,9 +153,11 @@ static rt_err_t uartByteReceived(rt_device_t dev, rt_size_t size)
     rt_device_t dev1;
     dev1 = dev;
     /* 从串口读取数据*/
-    rx_length = rt_device_read(dev1, 0, rxBuff + rxCount, size);
+
+    rx_length = rt_device_read(dev1, 0, rxBuff + rxCount, RT_SERIAL_RB_BUFSZ - rxCount);
     rxCount += rx_length;
-    receiveProtocol();
+
+    rxFlag = 1;
     return RT_EOK;
 }
 static rt_uint8_t auxilaryDataRepare(rt_uint8_t *buff)
@@ -174,12 +177,24 @@ static rt_uint8_t auxilaryDataRepare(rt_uint8_t *buff)
 static void serial_thread_entry(void *parameter)
 {
     rt_kprintf("****************************start auxilaryStart thread**************************\r\n");
-    rt_uint8_t len = 0;
+    rt_uint8_t len      = 0;
+    rt_tick_t writeTick = 0;
+
     while (1)
     {
-        rt_thread_delay(100);
+        // rt_thread_delay(100);
         len = auxilaryDataRepare(txBuff);
         rt_device_write(serial, 0, txBuff, len);
+        writeTick = rt_tick_get();
+        do
+        {
+            rt_thread_delay(10);
+            if (rxFlag)
+            {
+                rxFlag = 0;
+                receiveProtocol();
+            }
+        } while ((rt_tick_get() - writeTick) < 100);
     }
 }
 

@@ -1173,13 +1173,11 @@ void j25DrinkWaterTankLoop(void)
 
     ballLevel = j25GetFloatBall3();
     j25DrinkTankLoopCount++;
-    if (j25DrinkTankLoopCount < (2 * 2))  // interval 3H
-                                          //    if (j25DrinkTankLoopCount < (3 * 60 * 60 * 2))  // interval 3H
+    if (j25DrinkTankLoopCount < (3 * 60 * 60 * 2))  // interval 3H
     {
         l_sys.j25LoopState = 1;
     }
-    else if (j25DrinkTankLoopCount < ((2 * 2) + (5 * 2)))  // loop 20 minute
-    //  else if (j25DrinkTankLoopCount < ((3 * 60 * 60 * 2) + (20 * 60 * 2)))  // loop 20 minute
+    else if (j25DrinkTankLoopCount < ((3 * 60 * 60 * 2) + (20 * 60 * 2)))  // loop 20 minute
     {
         if ((ballLevel & FLOATBALLL) && (l_sys.j25PumpingWaterToDrinkTankState == 0) &&
             ((l_sys.OutWater_Flag & WATER_NORMAL_ICE) == 0) &&

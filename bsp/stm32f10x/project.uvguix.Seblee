@@ -3651,9 +3651,9 @@
       </Doc>
       <Doc>
         <Name>.\usr\modules\alarm_calc.c</Name>
-        <ColumnNumber>12</ColumnNumber>
-        <TopLine>1604</TopLine>
-        <CurrentLine>1618</CurrentLine>
+        <ColumnNumber>5</ColumnNumber>
+        <TopLine>1607</TopLine>
+        <CurrentLine>1624</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>

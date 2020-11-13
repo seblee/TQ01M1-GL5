@@ -1286,7 +1286,7 @@ void j25WaterMakeLogic(void)
 #define ALARM_STOP_FLAG MakeLogicFlag.bits.b2
 #define WATERLEVEL_STOP_FLAG MakeLogicFlag.bits.b3
 
-    if (g_sys.status.ComSta.u16TH[0].Temp > g_sys.config.ComPara.u16Start_Humidity)
+    if (g_sys.status.ComSta.u16TH[0].Hum > g_sys.config.ComPara.u16Start_Humidity)
     {
         if (humCount < 10)
         {
@@ -1297,7 +1297,7 @@ void j25WaterMakeLogic(void)
             HUM_START_FLAG = 1;
         }
     }
-    else if (g_sys.status.ComSta.u16TH[0].Temp > g_sys.config.ComPara.u16Stop_Humidity)
+    else if (g_sys.status.ComSta.u16TH[0].Hum > g_sys.config.ComPara.u16Stop_Humidity)
     {
         humCount       = 0;
         HUM_START_FLAG = 0;

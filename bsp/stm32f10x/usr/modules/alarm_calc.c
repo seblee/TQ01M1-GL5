@@ -1045,81 +1045,86 @@ static uint16_t acl02(alarm_acl_status_st *acl_ptr)
 // ACL_E3，浮球异常
 static uint16_t acl03(alarm_acl_status_st *acl_ptr)
 {
-    uint16_t data;
-    uint16_t u16WL;
+    // uint16_t data;
+    // uint16_t u16WL;
 
-    // 解除 报警
+    // // 解除 报警
+    // if (acl_clear(acl_ptr))
+    // {
+    //     return (ALARM_ACL_CLEARED);
+    // }
+    // u16WL = Get_Water_level();
+
+    // data = 0;
+    // if (g_sys.config.dev_mask.din[0] & D_ML)  // 4浮球
+    // {
+    //     if ((u16WL & D_U) && (((u16WL & D_M) == 0) || ((u16WL & D_ML) == 0) || ((u16WL & D_L) == 0)))
+    //     {
+    //         data |= 0x01;
+    //     }
+    //     else if ((u16WL & D_M) && (((u16WL & D_ML) == 0) || ((u16WL & D_L) == 0)))
+    //     {
+    //         data |= 0x02;
+    //     }
+    //     else if ((u16WL & D_ML) && ((u16WL & D_L) == 0))
+    //     {
+    //         data |= 0x04;
+    //     }
+    //     else if ((u16WL & S_U) && (((u16WL & S_M) == 0) || ((u16WL & S_L) == 0)))
+    //     {
+    //         data |= 0x08;
+    //     }
+    //     else if ((u16WL & S_M) && ((u16WL & S_L) == 0))
+    //     {
+    //         data |= 0x10;
+    //     }
+    //     else if (g_sys.status.ComSta.u16Ain[AI_NTC4] == ABNORMAL_VALUE)
+    //     {
+    //         data |= 0x40;
+    //     }
+    //     else
+    //     {
+    //         data = 0;
+    //     }
+    // }
+    // else  // 3浮球
+    // {
+    //     if ((u16WL & D_U) && (((u16WL & D_M) == 0) || ((u16WL & D_L) == 0)))
+    //     {
+    //         data |= 0x100;
+    //     }
+    //     else if ((u16WL & D_M) && ((u16WL & D_L) == 0))
+    //     {
+    //         data |= 0x200;
+    //     }
+    //     else if ((u16WL & S_U) && (((u16WL & S_M) == 0) || ((u16WL & S_L) == 0)))
+    //     {
+    //         data |= 0x400;
+    //     }
+    //     else if ((u16WL & S_M) && ((u16WL & S_L) == 0))
+    //     {
+    //         data |= 0x800;
+    //     }
+    //     else
+    //     {
+    //         data = 0;
+    //     }
+    // }
+    // //    rt_kprintf("u16WL = %x,data = %x\n",u16WL,data);
+    // if (data)
+    // {
+    //     data = ALARM_ACL_TRIGGERED;
+    // }
+    // else
+    // {
+    //     data = ALARM_ACL_CLEARED;
+    // }
+    // return data;
     if (acl_clear(acl_ptr))
     {
         return (ALARM_ACL_CLEARED);
     }
-    u16WL = Get_Water_level();
-
-    data = 0;
-    if (g_sys.config.dev_mask.din[0] & D_ML)  // 4浮球
-    {
-        if ((u16WL & D_U) && (((u16WL & D_M) == 0) || ((u16WL & D_ML) == 0) || ((u16WL & D_L) == 0)))
-        {
-            data |= 0x01;
-        }
-        else if ((u16WL & D_M) && (((u16WL & D_ML) == 0) || ((u16WL & D_L) == 0)))
-        {
-            data |= 0x02;
-        }
-        else if ((u16WL & D_ML) && ((u16WL & D_L) == 0))
-        {
-            data |= 0x04;
-        }
-        else if ((u16WL & S_U) && (((u16WL & S_M) == 0) || ((u16WL & S_L) == 0)))
-        {
-            data |= 0x08;
-        }
-        else if ((u16WL & S_M) && ((u16WL & S_L) == 0))
-        {
-            data |= 0x10;
-        }
-        else if (g_sys.status.ComSta.u16Ain[AI_NTC4] == ABNORMAL_VALUE)
-        {
-            data |= 0x40;
-        }
-        else
-        {
-            data = 0;
-        }
-    }
-    else  // 3浮球
-    {
-        if ((u16WL & D_U) && (((u16WL & D_M) == 0) || ((u16WL & D_L) == 0)))
-        {
-            data |= 0x100;
-        }
-        else if ((u16WL & D_M) && ((u16WL & D_L) == 0))
-        {
-            data |= 0x200;
-        }
-        else if ((u16WL & S_U) && (((u16WL & S_M) == 0) || ((u16WL & S_L) == 0)))
-        {
-            data |= 0x400;
-        }
-        else if ((u16WL & S_M) && ((u16WL & S_L) == 0))
-        {
-            data |= 0x800;
-        }
-        else
-        {
-            data = 0;
-        }
-    }
-    //    rt_kprintf("u16WL = %x,data = %x\n",u16WL,data);
-    if (data)
-    {
-        data = ALARM_ACL_TRIGGERED;
-    }
-    else
-    {
-        data = ALARM_ACL_CLEARED;
-    }
-    return data;
+    return (ALARM_ACL_CLEARED);
 }
 
 // ACL_E4,门打开

@@ -1047,7 +1047,7 @@ void j25InjectTransformChamber(void)
     rt_uint8_t ballLevel = 0;
 
     ballLevel = j25GetFloatBall3();
-    if ((ballLevel & FLOATBALLH) || (l_sys.j25WaterMakeState == 0))
+    if (ballLevel & FLOATBALLH)
     {
         /**
          * @brief   关闭水泵3

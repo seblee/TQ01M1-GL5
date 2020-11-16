@@ -187,7 +187,7 @@ void sys_running_mode_update(void)
 
 uint16_t sys_get_pwr_sts(void)
 {
-    extern sys_reg_st g_sys; 
+    extern sys_reg_st g_sys;
     if ((g_sys.status.ComSta.u16Status_remap[WORK_MODE_STS_REG_NO] >> PWR_STS_BPOS) & 0X0001)
     {
         return 1;
@@ -248,5 +248,81 @@ uint16_t Get_Water_level(void)
     extern sys_reg_st g_sys;
     uint16_t u16Water_level = 0;
 
+    //极性反转
+    // S_L
+    if (sys_get_di_sts(DI_FLOAT3_L_BPOS) == 0)
+    {
+        u16Water_level |= S_L;
+    }
+    else
+    {
+        u16Water_level &= ~S_L;
+    }
+
+    // S_M
+    if (sys_get_di_sts(DI_FLOAT3_M_BPOS) == 0)
+    {
+        u16Water_level |= S_M;
+    }
+    else
+    {
+        u16Water_level &= ~S_M;
+    }
+
+    // S_U
+    if (sys_get_di_sts(DI_FLOAT3_H_BPOS) == 0)
+    {
+        u16Water_level |= S_U;
+    }
+    else
+    {
+        u16Water_level &= ~S_U;
+    }
+    if (!(g_sys.config.dev_mask.din[0] & S_U))  //无上浮球
+    {
+        u16Water_level &= ~S_U;
+    }
+
+    // D_L
+    if (sys_get_di_sts(DI_FLOAT1_L_BPOS) == 0)
+    {
+        u16Water_level |= D_L;
+    }
+    else
+    {
+        u16Water_level &= ~D_L;
+    }
+
+    // D_M
+    if (sys_get_di_sts(DI_FLOAT1_H_BPOS) == 0)
+    {
+        u16Water_level |= D_M;
+    }
+    else
+    {
+        u16Water_level &= ~D_M;
+    }
+
+    // D_U
+    if (sys_get_di_sts(DI_FLOAT2_L_BPOS) == 0)
+    {
+        u16Water_level |= D_U;
+    }
+    else
+    {
+        u16Water_level &= ~D_U;
+    }
+
+    // D_ML
+    if (sys_get_di_sts(DI_FLOAT2_H_BPOS) == 0)
+    {
+        u16Water_level |= D_ML;
+    }
+    else
+    {
+        u16Water_level &= ~D_ML;
+    }
+
+    g_sys.status.ComSta.u16WL = u16Water_level;
     return u16Water_level;
 }

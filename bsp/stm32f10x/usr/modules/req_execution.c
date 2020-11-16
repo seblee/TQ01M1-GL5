@@ -1492,7 +1492,7 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
     ball[1] = j25GetFloatBall2();
     ball[2] = j25GetFloatBall3();
 
-    rt_kprintf("ball:%02X %02X %02X empty:%d,waterOut:%02x,pumpState:%02x,loop:%d\n", ball[0], ball[1], ball[2],
-               l_sys.j25AutomaticCleanState, l_sys.OutWater_Flag, l_sys.j25PumpingWaterToDrinkTankState,
-               l_sys.j25LoopState);
+    rt_kprintf("ball:%02X %02X %02X empty:%d,waterOut:%02x,pumpState:%02x,loop:%d,BITMAP:%04X\n", ball[0], ball[1],
+               ball[2], l_sys.j25AutomaticCleanState, l_sys.OutWater_Flag, l_sys.j25PumpingWaterToDrinkTankState,
+               l_sys.j25LoopState, g_sys.status.ComSta.u16Din_bitmap[0]);
 }

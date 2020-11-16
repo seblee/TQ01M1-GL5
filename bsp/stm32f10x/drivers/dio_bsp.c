@@ -49,9 +49,9 @@ const pin_map_st in_pin_map_inst[Pin_Map_In] = {
     {GPIO_Pin_8, GPIOC},   // DI2
     {GPIO_Pin_8, GPIOA},   // DI3
     {GPIO_Pin_6, GPIOC},   // DI4
+    {GPIO_Pin_13, GPIOD},  // DI5//中下水位
     {GPIO_Pin_12, GPIOD},  // DI6
     {GPIO_Pin_11, GPIOD},  // DI7
-    {GPIO_Pin_13, GPIOD},  // DI5//中下水位
     {GPIO_Pin_14, GPIOD},  // DI8
     {GPIO_Pin_15, GPIOD},  // DI9
     {GPIO_Pin_10, GPIOD},  // DI10

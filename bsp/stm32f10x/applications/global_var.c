@@ -52,8 +52,7 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {5, &g_sys.config.general.alarm_bypass_en, 0, 1, 0, 3, 1, NULL},
     {6, &g_sys.config.general.testing_mode_en, 0, 1, 0, 4, 1, NULL},
     {7, &g_sys.config.general.power_mode_mb_en, 0, 1, 1, 3, 1, NULL},
-    //    {8, &g_sys.config.dev_mask.din_bitmap_polarity[0], 0, 0xffff, 0xBFA4, 3, 1, NULL}, // DI极性
-    {8, &g_sys.config.dev_mask.din_bitmap_polarity[0], 0, 0xffff, 0xBE5B, 3, 1, NULL},  // DI极性
+    {8, &g_sys.config.dev_mask.din_bitmap_polarity[0], 0, 0xffff, 0xBE7B, 3, 1, NULL},  // DI极性
     {9, &g_sys.config.dev_mask.din_bitmap_polarity[1], 0, 0xffff, 0x00, 3, 1, NULL},
     {10, &g_sys.config.dev_mask.ain, 0, 0xffff, 0x801F, 3, 1, NULL},
     {11, &g_sys.config.dev_mask.din[0], 0, 0xFFFF, 0xBFFF, 3, 1, NULL},  // DI屏蔽位
@@ -178,8 +177,8 @@ const conf_reg_map_st conf_reg_map_inst[CONF_REG_MAP_NUM] = {
     {127, &g_sys.config.ComPara.u16CycleStart, 0, 1, 0, 2, 1, NULL},
     {128, NULL, 0, 3600, 0, 0, 1, NULL},
     {129, NULL, 0, 3600, 0, 0, 1, NULL},
-    {130, &g_sys.config.alarm[ACL_E11].alarm_param, 100, 1500, 1150, 2, 1, NULL},
-    {131, NULL, 0, 3600, 0, 0, 1, NULL},
+    {130, &g_sys.config.alarm[ACL_E11].alarm_param, 100, 1500, 1100, 2, 1, NULL},
+    {131, &g_sys.config.alarm[ACL_E23].alarm_param, 100, 1500, 210, 2, 1, NULL},
     {132, NULL, 0, 3600, 0, 0, 1, NULL},
     {133, NULL, 0, 3600, 0, 0, 1, NULL},
     {134, NULL, 0, 3600, 0, 0, 1, NULL},

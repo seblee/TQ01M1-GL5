@@ -1364,8 +1364,12 @@ static uint16_t acl11(alarm_acl_status_st *acl_ptr)
             count++;
         }
     }
+    else
+    {
+        count = 0;
+    }
 
-    if ((Exhaust_Temp > g_sys.config.ComPara.j25ExhaustWarnTempreture) && (count >= (2 * 60 * 2)))
+    if ((Exhaust_Temp > g_sys.config.alarm[ACL_E11].alarm_param) && (count >= (2 * 60 * 2)))
     {
         data = ALARM_ACL_TRIGGERED;
     }
@@ -1576,7 +1580,7 @@ static uint16_t acl22(alarm_acl_status_st *acl_ptr)
 static uint16_t acl23(alarm_acl_status_st *acl_ptr)  // ACL_J25_HI_TEM
 {
     uint8_t data;
-    int16_t Exhaust_Temp     = (int16_t)g_sys.status.ComSta.u16Ain[AI_NTC2];  //排气温度
+    int16_t Exhaust_Temp     = (int16_t)g_sys.status.ComSta.u16Ain[AI_NTC1];  //中盘温度
     static rt_uint16_t count = 0;
     // 解除 报警
     if (acl_clear(acl_ptr))
@@ -1595,8 +1599,12 @@ static uint16_t acl23(alarm_acl_status_st *acl_ptr)  // ACL_J25_HI_TEM
             count++;
         }
     }
+    else
+    {
+        count = 0;
+    }
 
-    if ((Exhaust_Temp > g_sys.config.ComPara.j25ExhaustWarnTempreture) && (count >= (2 * 60 * 2)))
+    if ((Exhaust_Temp > g_sys.config.alarm[ACL_E23].alarm_param) && (count >= (2 * 60 * 2)))
     {
         data = ALARM_ACL_TRIGGERED;
     }
@@ -1604,7 +1612,6 @@ static uint16_t acl23(alarm_acl_status_st *acl_ptr)  // ACL_J25_HI_TEM
     {
         data = ALARM_ACL_HOLD;
     }
-
     return (data);
 }
 static uint16_t acl24(alarm_acl_status_st *acl_ptr)  // ACL_J25_BALL1

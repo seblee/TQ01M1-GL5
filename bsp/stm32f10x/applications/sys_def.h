@@ -48,7 +48,7 @@ enum
 // V2234
 #define VER_0 (uint16)4  //
 #define VER_1 (uint16)0  //
-#define VER_2 (uint16)5  //
+#define VER_2 (uint16)6  //
 
 #elif SYS_M_T10
 #define CONF_REG_MAP_NUM 300

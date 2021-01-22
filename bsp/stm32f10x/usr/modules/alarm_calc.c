@@ -1013,8 +1013,8 @@ static uint16_t acl01(alarm_acl_status_st *acl_ptr)
     }
     else
     {
-        data = 0;
     }
+    data = 0;
     return data;
 }
 
@@ -1037,8 +1037,8 @@ static uint16_t acl02(alarm_acl_status_st *acl_ptr)
     }
     else
     {
-        data = 0;
     }
+    data = 0;
     return data;
 }
 

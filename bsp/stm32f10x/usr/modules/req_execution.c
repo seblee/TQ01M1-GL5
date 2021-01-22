@@ -262,7 +262,16 @@ static void Fan_Fsm_Out(uint8_t Fan_Gear)
     {
         case FAN_GEAR_START:
             req_bitmap_op(DO_FAN_LOW_BPOS, 1);
-            req_bitmap_op(DO_F24_BPOS, 1);
+            if (g_sys.status.ComSta.u16TH[0].Temp >= 300)
+            {
+                req_bitmap_op(DO_F24_BPOS, 1);
+            }
+
+            if (g_sys.status.ComSta.u16TH[0].Temp <= 260)
+            {
+                req_bitmap_op(DO_F24_BPOS, 0);
+            }
+
             break;
         case FAN_GEAR_NO:
             req_bitmap_op(DO_FAN_LOW_BPOS, 0);
@@ -1277,14 +1286,14 @@ void j25CompressorWork(FunctionalState state)
 
 void j25WaterMakeLogic(void)
 {
-    rt_uint8_t ballLevel        = j25GetFloatBall3();
+    // rt_uint8_t ballLevel        = j25GetFloatBall3();
     static rt_uint16_t humCount = 0;
 
     static _TKS_FLAGA_type MakeLogicFlag = {0};
 #define HUM_START_FLAG MakeLogicFlag.bits.b0
 #define HUM_STOP_FLAG MakeLogicFlag.bits.b1
 #define ALARM_STOP_FLAG MakeLogicFlag.bits.b2
-#define WATERLEVEL_STOP_FLAG MakeLogicFlag.bits.b3
+    // #define WATERLEVEL_STOP_FLAG MakeLogicFlag.bits.b3
 
     if (g_sys.status.ComSta.u16TH[0].Hum > g_sys.config.ComPara.u16Start_Humidity)
     {
@@ -1323,21 +1332,21 @@ void j25WaterMakeLogic(void)
     {
         ALARM_STOP_FLAG = 0;
     }
-    if (ballLevel & FLOATBALLM)
-    {
-        WATERLEVEL_STOP_FLAG = 1;
-    }
-    else
-    {
-        WATERLEVEL_STOP_FLAG = 0;
-    }
+    // if (ballLevel & FLOATBALLM)
+    // {
+    //     WATERLEVEL_STOP_FLAG = 1;
+    // }
+    // else
+    // {
+    //     WATERLEVEL_STOP_FLAG = 0;
+    // }
 
     if (HUM_START_FLAG)
     {
         l_sys.j25WaterMakeState = 1;
     }
 
-    if (ALARM_STOP_FLAG || HUM_STOP_FLAG || WATERLEVEL_STOP_FLAG)
+    if (ALARM_STOP_FLAG || HUM_STOP_FLAG)  //|| WATERLEVEL_STOP_FLAG)
     {
         l_sys.j25WaterMakeState = 0;
     }

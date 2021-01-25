@@ -1033,15 +1033,15 @@ uint8_t j25GetFloatBall3(void)
 {
     uint8_t Water_level = 0;
 
-    if (l_sys.j25AuxiliaryBoardDI & (1 << 5))  // ball high
+    if (l_sys.j25AuxiliaryBoardDI & (1 << 4))  // ball high
     {
         Water_level |= FLOATBALLH;
     }
-    if (l_sys.j25AuxiliaryBoardDI & (1 << 4))  // ball high
+    if (l_sys.j25AuxiliaryBoardDI & (1 << 6))  // ball high
     {
         Water_level |= FLOATBALLM;
     }
-    if (l_sys.j25AuxiliaryBoardDI & (1 << 6))  // ball high
+    if (l_sys.j25AuxiliaryBoardDI & (1 << 3))  // ball high
     {
         Water_level |= FLOATBALLL;
     }
@@ -1484,7 +1484,7 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
     //压缩机控制
     compressor_req_exe(target_req_temp, target_req_hum);
     //显示屏控制
-    Restart_DIS_exe();
+    // Restart_DIS_exe();
 
     j25InjectTransformChamber();
     j25ConcentrateSinkEmpty();
@@ -1501,7 +1501,8 @@ void req_execution(int16_t target_req_temp, int16_t target_req_hum)
     ball[1] = j25GetFloatBall2();
     ball[2] = j25GetFloatBall3();
 
-    rt_kprintf("ball:%02X %02X %02X empty:%d,waterOut:%02x,pumpState:%02x,loop:%d,BITMAP:%04X\n", ball[0], ball[1],
-               ball[2], l_sys.j25AutomaticCleanState, l_sys.OutWater_Flag, l_sys.j25PumpingWaterToDrinkTankState,
-               l_sys.j25LoopState, g_sys.status.ComSta.u16Din_bitmap[0]);
+    rt_kprintf("ball:%02X %02X %02X empty:%d,waterOut:%02x,pumpState:%02x,loop:%d,BITMAP:%04X,AUXDI:%04X\n", ball[0],
+               ball[1], ball[2], l_sys.j25AutomaticCleanState, l_sys.OutWater_Flag,
+               l_sys.j25PumpingWaterToDrinkTankState, l_sys.j25LoopState, g_sys.status.ComSta.u16Din_bitmap[0],
+               l_sys.j25AuxiliaryBoardDI);
 }

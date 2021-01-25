@@ -208,7 +208,7 @@ void keyRecOperation(_TKS_FLAGA_type *keyState)
                 }
                 else
                 {
-                    waterOutOpt(TRUE);
+                    waterOutOpt(FALSE);
                 }
             }
         }
@@ -383,7 +383,7 @@ static void caculateLed(void)
             normalKeyState = STATE_LED_ON;
             break;
     }
-    if (g_sys.status.alarm_bitmap[1] & 0xff80)
+    if ((g_sys.status.alarm_bitmap[1] & 0xff80) || (l_sys.OutWater_Flag != WATER_NO))
     {
         fetchKeyState = STATE_LED_ON;
     }

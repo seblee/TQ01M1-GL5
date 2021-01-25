@@ -1548,23 +1548,24 @@ static uint16_t acl19(alarm_acl_status_st *acl_ptr)
 // ACL_RS_NETERR
 static uint16_t acl20(alarm_acl_status_st *acl_ptr)
 {
-    uint8_t data;
+    return (ALARM_ACL_CLEARED);
+    // uint8_t data;
 
-    // 解除 报警
-    if (acl_clear(acl_ptr))
-    {
-        return (ALARM_ACL_CLEARED);
-    }
+    // // 解除 报警
+    // if (acl_clear(acl_ptr))
+    // {
+    //     return (ALARM_ACL_CLEARED);
+    // }
 
-    if (l_sys.u8RSInteral_Neterr)
-    {
-        data = ALARM_ACL_TRIGGERED;
-    }
-    else
-    {
-        data = ALARM_ACL_CLEARED;
-    }
-    return (data);
+    // if (l_sys.u8RSInteral_Neterr)
+    // {
+    //     data = ALARM_ACL_TRIGGERED;
+    // }
+    // else
+    // {
+    //     data = ALARM_ACL_CLEARED;
+    // }
+    // return (data);
 }
 // ACL_HI_PRESS1
 static uint16_t acl21(alarm_acl_status_st *acl_ptr)

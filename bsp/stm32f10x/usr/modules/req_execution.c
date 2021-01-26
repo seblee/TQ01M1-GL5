@@ -1157,6 +1157,7 @@ void j25WaterOut(void)
         UVOutPut |= WATEROUT_FLAG;
         EV5OutPut |= WATEROUT_FLAG;
         l_sys.OutWater_Flag |= WATER_NORMAL_ICE;  //出水中
+        g_sys.status.ComSta.REQ_TEST[1] = 1;
     }
     else
     {
@@ -1169,6 +1170,7 @@ void j25WaterOut(void)
         UVOutPut &= ~WATEROUT_FLAG;
         EV5OutPut &= ~WATEROUT_FLAG;
         l_sys.OutWater_Flag &= ~WATER_NORMAL_ICE;  //出水中
+        g_sys.status.ComSta.REQ_TEST[1] = 0;
     }
 }
 /**
@@ -1294,9 +1296,10 @@ void j25WaterMakeLogic(void)
 #define HUM_STOP_FLAG MakeLogicFlag.bits.b1
 #define ALARM_STOP_FLAG MakeLogicFlag.bits.b2
     // #define WATERLEVEL_STOP_FLAG MakeLogicFlag.bits.b3
-
+    g_sys.status.ComSta.REQ_TEST[2] = 0;
     if (g_sys.status.ComSta.u16TH[0].Hum > g_sys.config.ComPara.u16Start_Humidity)
     {
+        g_sys.status.ComSta.REQ_TEST[2] |= 1;
         if (humCount < 10)
         {
             humCount++;
@@ -1304,32 +1307,38 @@ void j25WaterMakeLogic(void)
         else
         {
             HUM_START_FLAG = 1;
+            HUM_STOP_FLAG  = 0;
         }
     }
     else if (g_sys.status.ComSta.u16TH[0].Hum > g_sys.config.ComPara.u16Stop_Humidity)
     {
+        g_sys.status.ComSta.REQ_TEST[2] |= 2;
         humCount       = 0;
         HUM_START_FLAG = 0;
         HUM_STOP_FLAG  = 0;
     }
     else
     {
+        g_sys.status.ComSta.REQ_TEST[2] |= 4;
         if (humCount < 10)
         {
             humCount++;
         }
         else
         {
-            HUM_STOP_FLAG = 1;
+            HUM_START_FLAG = 0;
+            HUM_STOP_FLAG  = 1;
         }
     }
 
     if ((get_alarm_bitmap(ACL_SYS01_EXHAUST_HI)) || (get_alarm_bitmap(ACL_J25_HI_TEM)))
     {
+        g_sys.status.ComSta.REQ_TEST[2] |= 0x08;
         ALARM_STOP_FLAG = 1;
     }
     else
     {
+        g_sys.status.ComSta.REQ_TEST[2] |= 0x10;
         ALARM_STOP_FLAG = 0;
     }
     // if (ballLevel & FLOATBALLM)
@@ -1343,11 +1352,13 @@ void j25WaterMakeLogic(void)
 
     if (HUM_START_FLAG)
     {
+        g_sys.status.ComSta.REQ_TEST[2] |= 0x20;
         l_sys.j25WaterMakeState = 1;
     }
 
     if (ALARM_STOP_FLAG || HUM_STOP_FLAG)  //|| WATERLEVEL_STOP_FLAG)
     {
+        g_sys.status.ComSta.REQ_TEST[2] |= 0x40;
         l_sys.j25WaterMakeState = 0;
     }
 

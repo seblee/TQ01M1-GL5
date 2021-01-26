@@ -43,7 +43,6 @@ enum
     // TCOM_THREAD_PRIO,
     // TEAM_THREAD_PRIO,
     MBM_FSM_THREAD_PRIO,
-    TDS_THREAD_PRIO,
     DI_THREAD_PRIO,
     DAQ_THREAD_PRIO,
     CORE_THREAD_PRIO,
@@ -124,20 +123,6 @@ int rt_application_init(void)
         rt_thread_startup(&modbus_master_thread);
     }
 
-    //    //modbus_slave_thread_entry
-    //    result = rt_thread_init(&modbus_slave_thread,
-    //                            "mb_slave",
-    //                            modbus_slave_thread_entry,
-    //                            RT_NULL,
-    //                            (rt_uint8_t *)&modbus_slave_stack[0],
-    //                            sizeof(modbus_slave_stack),
-    //                            MODBUS_SLAVE_THREAD_PRIO,
-    //                            20);
-    //    if (result == RT_EOK)
-    //    {
-    //        rt_thread_startup(&modbus_slave_thread);
-    //    }
-
     // CPAD_slave_thread_entry
     result = rt_thread_init(&CPAD_slave_thread, "CPAD_slave", cpad_modbus_slave_thread_entry, RT_NULL,
                             (rt_uint8_t *)&monitor_slave_stack[0], sizeof(monitor_slave_stack),
@@ -197,7 +182,7 @@ int rt_application_init(void)
     if (testcase_thread != RT_NULL)
         rt_thread_startup(testcase_thread);
 
-       return 0;
+    return 0;
 }
 
 void set_boot_flag(void)
